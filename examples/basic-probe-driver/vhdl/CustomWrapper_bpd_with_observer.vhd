@@ -84,10 +84,18 @@ architecture bpd_wrapper_with_observer of CustomWrapper is
     ----------------------------------------------------------------------------
     -- Internal Signals - FSM Status Interface
     ----------------------------------------------------------------------------
-    signal trig_out_active_port      : std_logic;
-    signal intensity_out_active_port : std_logic;
-    signal current_state_port        : std_logic_vector(5 downto 0);
-    signal ready_for_updates         : std_logic;  -- Not used in wrapper
+    signal ready_for_updates : std_logic;  -- From main entity
+
+    -- Physical outputs from main (for decoding)
+    signal main_output_a : signed(15 downto 0);  -- Trigger voltage output
+    signal main_output_b : signed(15 downto 0);  -- Intensity voltage output
+    signal main_output_c : signed(15 downto 0);  -- Reserved
+    signal main_output_d : signed(15 downto 0);  -- Reserved
+
+    -- Decoded status signals (for test wrapper outputs)
+    signal trig_out_active      : std_logic;  -- Derived from OutputA
+    signal intensity_out_active : std_logic;  -- Derived from OutputB
+    signal current_state_port   : std_logic_vector(5 downto 0);  -- For FSM observer (TODO: needs status register)
 
     ----------------------------------------------------------------------------
     -- FSM Observer Signals
@@ -143,14 +151,14 @@ begin
     probe_monitor_feedback <= InputA;
 
     ----------------------------------------------------------------------------
-    -- Output Packing
+    -- Output Packing (Test Wrapper)
     ----------------------------------------------------------------------------
 
     -- OutputA: Trigger active flag (0x0000 or 0xFFFF)
-    OutputA <= (others => trig_out_active_port);
+    OutputA <= (others => trig_out_active);
 
     -- OutputB: Intensity active flag (0x0000 or 0xFFFF)
-    OutputB <= (others => intensity_out_active_port);
+    OutputB <= (others => intensity_out_active);
 
     -- OutputC: FSM state (6-bit state in lower bits, zero-padded)
     OutputC <= signed("0000000000" & current_state_port);
@@ -161,44 +169,59 @@ begin
     ----------------------------------------------------------------------------
     -- FSM Instantiation
     ----------------------------------------------------------------------------
-    BPD_FSM: entity WORK.basic_probe_driver_custom_inst_main
+    BPD_FSM: entity WORK.BPD_forge_main
         generic map (
             CLK_FREQ_HZ => CLK_FREQ_HZ
         )
         port map (
             -- Clock and Reset
-            Clk                => Clk,
-            Reset              => Reset,
-            global_enable      => GLOBAL_ENABLE,
-            ready_for_updates  => ready_for_updates,
+            Clk               => Clk,
+            Reset             => Reset,
+            global_enable     => GLOBAL_ENABLE,
+            ready_for_updates => ready_for_updates,
 
-            -- Application Signals (Typed)
-            arm_enable                => arm_enable,
-            ext_trigger_in            => ext_trigger_in,
-            trigger_wait_timeout      => trigger_wait_timeout,
-            auto_rearm_enable         => auto_rearm_enable,
-            fault_clear               => fault_clear,
+            -- Application Signals (bpd_* prefix)
+            bpd_arm_enable           => arm_enable,
+            bpd_ext_trigger_in       => ext_trigger_in,
+            bpd_trigger_wait_timeout => trigger_wait_timeout,
+            bpd_auto_rearm_enable    => auto_rearm_enable,
+            bpd_fault_clear          => fault_clear,
 
-            trig_out_voltage          => trig_out_voltage,
-            trig_out_duration         => trig_out_duration,
+            bpd_trig_out_voltage     => trig_out_voltage,
+            bpd_trig_out_duration    => trig_out_duration,
 
-            intensity_voltage         => intensity_voltage,
-            intensity_duration        => intensity_duration,
+            bpd_intensity_voltage    => intensity_voltage,
+            bpd_intensity_duration   => intensity_duration,
 
-            cooldown_interval         => cooldown_interval,
+            bpd_cooldown_interval    => cooldown_interval,
 
-            probe_monitor_feedback    => probe_monitor_feedback,
-            monitor_enable            => monitor_enable,
-            monitor_threshold_voltage => monitor_threshold_voltage,
-            monitor_expect_negative   => monitor_expect_negative,
-            monitor_window_start      => monitor_window_start,
-            monitor_window_duration   => monitor_window_duration,
+            bpd_probe_monitor_feedback    => probe_monitor_feedback,
+            bpd_monitor_enable            => monitor_enable,
+            bpd_monitor_threshold_voltage => monitor_threshold_voltage,
+            bpd_monitor_expect_negative   => monitor_expect_negative,
+            bpd_monitor_window_start      => monitor_window_start,
+            bpd_monitor_window_duration   => monitor_window_duration,
 
-            -- Status Outputs
-            trig_out_active_port      => trig_out_active_port,
-            intensity_out_active_port => intensity_out_active_port,
-            current_state_port        => current_state_port
+            -- Physical I/O
+            OutputA => main_output_a,  -- Trigger DAC output
+            OutputB => main_output_b,  -- Intensity DAC output
+            OutputC => main_output_c,  -- Reserved
+            OutputD => main_output_d   -- Reserved
         );
+
+    ----------------------------------------------------------------------------
+    -- Decode Status from Physical Outputs
+    -- (Test wrapper needs status for test observability)
+    ----------------------------------------------------------------------------
+    -- Trigger active if OutputA is non-zero
+    trig_out_active <= '1' when (main_output_a /= to_signed(0, 16)) else '0';
+
+    -- Intensity active if OutputB is non-zero
+    intensity_out_active <= '1' when (main_output_b /= to_signed(0, 16)) else '0';
+
+    -- TODO: FSM state needs to be exposed via status register
+    -- For now, default to IDLE (this will break FSM observer tests)
+    current_state_port <= "000000";  -- IDLE state
 
     ----------------------------------------------------------------------------
     -- FSM Observer Instantiation
