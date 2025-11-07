@@ -198,6 +198,48 @@ All templates use consistent frontmatter:
 
 ---
 
+### 7. `web-ui-handoff.md`
+**Purpose:** Handoff tasks to Claude Code Web UI workers
+
+**Use when:**
+- Delegating task to Web UI for parallel execution
+- Need fresh 200k token context
+- Task is independent and self-contained
+
+**Creates:**
+- Quick-start message for Web UI
+- Branch tracking fields
+- Merge instructions
+- Success criteria
+
+**Key features:**
+- Tracks `claude/[task]-[id]` branches
+- Provides merge strategies (PR, local, cherry-pick)
+- Documents branch lifecycle
+
+**Output location:** `Obsidian/Project/Sessions/[session]/` or `Obsidian/Project/Handoffs/`
+
+---
+
+### 8. `web-ui-tracker.md`
+**Purpose:** Track multiple parallel Web UI workers and their branches
+
+**Use when:**
+- Running multiple Web UI sessions in parallel
+- Need to monitor branch status
+- Coordinating merges from multiple workers
+
+**Creates:**
+- Active worker table
+- Branch monitoring commands
+- Completion log
+- Cleanup tracking
+- Parallelization statistics
+
+**Output location:** `Obsidian/Project/Sessions/[session]/`
+
+---
+
 ## Customization
 
 ### Adding New Templates
