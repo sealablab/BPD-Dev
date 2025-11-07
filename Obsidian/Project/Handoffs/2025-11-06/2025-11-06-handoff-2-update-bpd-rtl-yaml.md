@@ -220,8 +220,8 @@ git diff BPD-RTL.yaml
 ## Handoff Chain
 
 **This handoff:** 2 of 3
-**Next handoff:** [[2025-11-06-handoff-3-apply-template-to-bpd]]
-**Previous:** [[2025-11-06-handoff-1-fix-forge-vhdl-types]]
+**Next handoff:** [[Obsidian/Project/Handoffs/2025-11-06/2025-11-06-handoff-3-apply-template-to-bpd]]
+**Previous:** [[Obsidian/Project/Handoffs/2025-11-06/2025-11-06-handoff-1-fix-forge-vhdl-types]]
 
 ---
 

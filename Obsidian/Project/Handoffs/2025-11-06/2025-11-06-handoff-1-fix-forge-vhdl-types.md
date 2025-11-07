@@ -209,7 +209,7 @@ ghdl -a --std=08 vhdl/packages/forge_serialization_voltage_pkg.vhd
 ## Handoff Chain
 
 **This handoff:** 1 of 3
-**Next handoff:** [[2025-11-06-handoff-2-update-bpd-rtl-yaml]]
+**Next handoff:** [[Obsidian/Project/Handoffs/2025-11-06/2025-11-06-handoff-2-update-bpd-rtl-yaml]]
 **Previous:** None (starting point)
 
 ---

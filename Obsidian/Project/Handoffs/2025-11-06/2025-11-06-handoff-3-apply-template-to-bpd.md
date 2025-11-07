@@ -421,8 +421,8 @@ This allows:
 ## Handoff Chain
 
 **This handoff:** 3 of 4
-**Next handoff:** [[2025-11-06-handoff-4-complete-forge-integration]]
-**Previous:** [[2025-11-06-handoff-2-update-bpd-rtl-yaml]]
+**Next handoff:** [[Obsidian/Project/Handoffs/2025-11-06/2025-11-06-handoff-4-complete-forge-integration]]
+**Previous:** [[Obsidian/Project/Handoffs/2025-11-06/2025-11-06-handoff-2-update-bpd-rtl-yaml]]
 
 ---
 
