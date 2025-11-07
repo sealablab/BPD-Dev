@@ -399,11 +399,28 @@ end if;
 
 ---
 
+## 🗂️ Obsidian Session Management
+
+**Manage development sessions with three slash commands:**
+
+```
+/obsd_new_session       # Start fresh session with goals
+/obsd_continue_session  # Resume previous session
+/obsd_close_session     # Archive session + harvest /compact
+```
+
+**Key innovation:** Sessions can automatically harvest the `/compact` context summary, turning your full conversation into structured archive files!
+
+**See:** `Obsidian/Project/README.md` for complete workflow
+
+---
+
 ## 📞 Get Help
 
 - **Documentation:** Start with `examples/basic-probe-driver/README.md`
 - **Architecture:** See `CLAUDE.md` for complete details
-- **AI Assistance:** Run `/customize-monorepo` in Claude Code
+- **Session Management:** See `Obsidian/Project/Sessions/README.md` for workflow
+- **AI Assistance:** Run `/customize-monorepo` or `/obsd_new_session` in Claude Code
 - **Issues:** Open issues in your repository (this is a template!)
 
 ---

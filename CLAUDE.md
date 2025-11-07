@@ -801,6 +801,54 @@ For **session context and collaboration workspace**, use parallel PDA pattern:
 - Code/architecture: llms.txt → CLAUDE.md → source
 - Session/collaboration: Obsidian/Project/README.md → subdirectory READMEs → notes
 
+### Obsidian Session Management
+
+**Three slash commands for session lifecycle:**
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/obsd_new_session` | Create new session with goals | Starting fresh work |
+| `/obsd_continue_session` | Resume existing session | Continuing previous work |
+| `/obsd_close_session` | Archive session + harvest `/compact` | Ending session |
+
+**Key innovation:** `/obsd_close_session` can harvest context compaction summary from `/compact` command!
+
+**Workflow:**
+```
+1. /obsd_new_session
+   → Creates session-plan.md
+   → Optional: Creates git branch (sessions/YYYY-MM-DD-description)
+   → Links active handoffs
+
+2. [Work happens, commits made]
+
+3. If token usage >80%: User runs /compact
+
+4. /obsd_close_session
+   → Harvests compaction summary (if available)
+   → Generates session archive (5-6 files)
+   → Commits to git
+   → Optional: Merges session branch
+```
+
+**Session archive structure:**
+```
+Obsidian/Project/Sessions/YYYY-MM-DD-description/
+├── session-plan.md          # From open
+├── compaction-summary.md    # Raw /compact output (if used)
+├── session-summary.md       # Human-readable summary
+├── commits.md               # Git log extraction
+├── decisions.md             # Key technical decisions
+├── next-session-plan.md     # Tomorrow's starting point
+└── handoffs/                # Symlinks to active handoffs
+```
+
+**See:**
+- `.claude/commands/obsd_new_session.md` - New session command
+- `.claude/commands/obsd_continue_session.md` - Continue session command
+- `.claude/commands/obsd_close_session.md` - Close session command
+- `Obsidian/Project/Sessions/README.md` - Complete session management guide
+
 ### Critical Knowledge
 
 **ALWAYS REMEMBER:**
