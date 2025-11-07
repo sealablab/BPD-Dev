@@ -133,9 +133,62 @@ See [[Obsidian/Templates/README|Templates README]] for available Templater templ
 
 ---
 
+## Session Management Slash Commands
+
+### Three-Command Lifecycle
+
+**Manage sessions efficiently with these slash commands:**
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/obsd_new_session` | Create new session with goals | Starting fresh work |
+| `/obsd_continue_session` | Resume existing session | Continuing previous work |
+| `/obsd_close_session` | Archive session + harvest `/compact` | Ending session |
+
+**Quick Start:**
+```
+1. /obsd_new_session
+   → Creates session-plan.md
+   → Optional: Creates git branch (sessions/YYYY-MM-DD-description)
+   → Links active handoffs
+
+2. [Work happens, commits made]
+
+3. /obsd_close_session
+   → Checks token usage (recommend /compact if >80%)
+   → Harvests compaction summary (if available)
+   → Generates session archive (5-6 files)
+   → Commits to git
+   → Optional: Merges session branch
+```
+
+**Key Feature:** `/obsd_close_session` can harvest the context compaction summary from `/compact` command, turning it into structured session archive files automatically!
+
+**See:** `.claude/commands/obsd_*` for detailed behavior
+
+---
+
 ## Workflow Examples
 
-### Example 1: Session Handoff
+### Example 1: New Session with Slash Command
+```markdown
+# User starts session
+/obsd_new_session
+
+# Claude asks: "What's the goal for this session?"
+User: "BPD integration testing"
+
+# Claude creates:
+Obsidian/Project/Sessions/2025-11-07-bpd-integration/
+├── session-plan.md          # Pre-filled with goal
+└── handoffs/                # Links to active handoffs
+
+# Claude reports:
+"✅ Session 2025-11-07-bpd-integration created
+ 📂 Ready to start!"
+```
+
+### Example 2: Session Handoff (Manual)
 ```markdown
 # End of Claude session
 1. Create note: Obsidian/Project/Handoffs/2025-11-06-1500-fsm-debug.md

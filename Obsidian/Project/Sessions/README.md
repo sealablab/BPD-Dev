@@ -67,7 +67,28 @@ Sessions/
 
 ---
 
-## Usage
+## Session Management Slash Commands
+
+**Recommended workflow - use these slash commands instead of manual creation:**
+
+### `/obsd_new_session` - Start New Session
+Creates session directory with plan, optional git branch, links handoffs.
+
+**See:** `.claude/commands/obsd_new_session.md`
+
+### `/obsd_continue_session` - Resume Session
+Loads session context, checks git status, skims recent commits.
+
+**See:** `.claude/commands/obsd_continue_session.md`
+
+### `/obsd_close_session` - Archive Session
+Generates archive files, optionally harvests `/compact` summary, commits.
+
+**See:** `.claude/commands/obsd_close_session.md`
+
+---
+
+## Manual Usage (If Not Using Slash Commands)
 
 ### At Session End
 
@@ -98,6 +119,9 @@ Sessions/
 
 ### At Session Start
 
+**Recommended:** Use `/obsd_continue_session` command (auto-loads all context)
+
+**Manual alternative:**
 1. **Read previous session summary:**
    ```bash
    cat Obsidian/Project/Sessions/YYYY-MM-DD/session-summary.md
@@ -138,6 +162,42 @@ cp Obsidian/Templates/session-summary.md \
 Then edit and replace:
 - `{{date:YYYY-MM-DD}}` → Actual date
 - `[Placeholders]` → Actual content
+
+---
+
+---
+
+## Context Compaction Integration
+
+**Key Innovation:** Sessions can harvest the `/compact` command output!
+
+### How It Works
+
+1. At session end, check token usage
+2. If >80%, run user command: `/compact`
+3. Claude receives structured summary internally
+4. Run `/obsd_close_session` (second time)
+5. Claude extracts summary → session archive files automatically
+
+### Benefits of Compaction-Based Archiving
+
+- ✅ **Complete capture** - Full conversation, not human memory
+- ✅ **Structured extraction** - Chronological, technical, errors, decisions
+- ✅ **Token-optimized** - 40-50x compression while preserving critical details
+- ✅ **Consistent format** - Same structure every time
+
+### Compaction Files
+
+```
+Sessions/YYYY-MM-DD/
+├── compaction-summary.md    # Raw /compact output (reference)
+├── session-summary.md       # Parsed human-readable summary
+├── commits.md               # Extracted from compaction
+├── decisions.md             # Extracted from compaction
+└── next-session-plan.md     # Extracted from pending tasks
+```
+
+**See:** `.claude/commands/obsd_close_session.md` for implementation details
 
 ---
 

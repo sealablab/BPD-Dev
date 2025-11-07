@@ -60,6 +60,65 @@
 
 ---
 
+### 4. `session-plan.md`
+**Purpose:** Session planning with goals and objectives
+
+**Use when:**
+- Starting new session via `/obsd_new_session`
+- Continuing session via `/obsd_continue_session`
+- Manually planning ad-hoc sessions
+
+**Creates:**
+- Session ID and git branch metadata
+- Primary objectives (checklist)
+- Expected tasks
+- Active handoffs list
+- Success criteria
+
+**Output location:** `Obsidian/Project/Sessions/YYYY-MM-DD-description/`
+
+**Note:** Usually auto-created by slash commands, not manual
+
+---
+
+### 5. `session-summary.md`
+**Purpose:** End-of-session wrap-up with accomplishments
+
+**Use when:**
+- Closing session via `/obsd_close_session`
+- Manually documenting session results
+
+**Creates:**
+- Session overview and status
+- Major accomplishments
+- Commit summary (see commits.md)
+- Key decisions (see decisions.md)
+- Statistics and next steps
+
+**Output location:** `Obsidian/Project/Sessions/YYYY-MM-DD-description/`
+
+**Note:** Part of complete session archive (5-6 files total)
+
+---
+
+### 6. `compaction-summary.md`
+**Purpose:** Preserve raw context compaction output
+
+**Use when:**
+- `/obsd_close_session` after running `/compact` command
+- Token usage >80% and compaction was used
+
+**Creates:**
+- Raw compaction summary output
+- Extraction notes for other files
+- Usage documentation
+
+**Output location:** `Obsidian/Project/Sessions/YYYY-MM-DD-description/`
+
+**Note:** Only created when `/compact` is used (high token usage)
+
+---
+
 ## Using Templates
 
 ### In Obsidian (Recommended)
@@ -154,14 +213,36 @@ All templates use consistent frontmatter:
 
 ---
 
+## Session Management Slash Commands
+
+**For session templates (4, 5, 6 above), use these slash commands:**
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `/obsd_new_session` | Create new session with plan | Starting fresh work |
+| `/obsd_continue_session` | Resume existing session | Continuing previous work |
+| `/obsd_close_session` | Archive session with summary | Ending session |
+
+**Workflow:**
+1. `/obsd_new_session` → Creates session-plan.md
+2. [Work happens, commits made]
+3. `/obsd_close_session` → Creates session archive (5-6 files)
+
+**See:** `.claude/commands/obsd_*` for detailed slash command behavior
+
+---
+
 ## Related Documentation
 
 - [Templater Plugin Docs](https://silentvoid13.github.io/Templater/)
 - [[Obsidian/Project/README]] - Project workspace overview
 - [[Obsidian/Project/Handoffs/README]] - Handoff conventions
-- [[Obsidian/Project/Prompts/README]] - Prompt library guide
+- [[Obsidian/Project/Sessions/README]] - Session management guide
+- [`.claude/commands/obsd_new_session.md`](../../.claude/commands/obsd_new_session.md) - New session command
+- [`.claude/commands/obsd_continue_session.md`](../../.claude/commands/obsd_continue_session.md) - Continue session command
+- [`.claude/commands/obsd_close_session.md`](../../.claude/commands/obsd_close_session.md) - Close session command
 
 ---
 
 **Created:** 2025-11-06
-**Last Updated:** 2025-11-06
+**Last Updated:** 2025-11-07
