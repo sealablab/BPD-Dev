@@ -2,10 +2,13 @@
 P3 - Comprehensive Tests for BPD FSM Observer
 
 Full coverage tests including edge cases and stress testing.
-Tests verify voltage spreading, rapid transitions, and configuration documentation.
+Tests verify hierarchical encoding, rapid transitions, and configuration documentation.
+
+UPDATED 2025-11-07: Now uses forge_hierarchical_encoder (200 units/state)
+Previous voltage spreading (0-2.5V) replaced with hierarchical encoding.
 
 Test Coverage:
-8. Voltage spreading verification
+8. Hierarchical encoding verification (200 units/state)
 9. Rapid state changes (stress test)
 10. Configuration documentation
 
@@ -13,7 +16,7 @@ Expected Output: <100 lines (with GHDL aggressive filter)
 Expected Runtime: <2 minutes
 
 Author: Adapted from proposed_cocotb_test/test_bpd_fsm_observer.py
-Date: 2025-11-05
+Date: 2025-11-05 (Updated 2025-11-07 for hierarchical encoder)
 """
 
 import cocotb

@@ -251,11 +251,15 @@ begin
     -- Pad 3-bit FSM state to 6-bit for observer (CRITICAL!)
     fsm_state_6bit <= "000" & fsm_state_3bit;
 
+    -- MIGRATION NOTE (2025-11-07): fsm_observer is now a wrapper around
+    -- forge_hierarchical_encoder. Output scaling has changed from voltage
+    -- spreading (0-2.5V) to hierarchical encoding (200 units/state).
+    -- TODO: Update to use forge_hierarchical_encoder directly for full control.
     U_FSM_OBSERVER: entity work.fsm_observer
         generic map (
-            NUM_STATES => 8,              -- 8 states (0-7)
-            V_MIN => 0.0,                 -- READY = 0.0V
-            V_MAX => 2.5,                 -- Last normal state
+            NUM_STATES => 8,              -- 8 states (0-7) [IGNORED by wrapper]
+            V_MIN => 0.0,                 -- READY = 0.0V [IGNORED by wrapper]
+            V_MAX => 2.5,                 -- Last normal state [IGNORED by wrapper]
             FAULT_STATE_THRESHOLD => 7,   -- State "000111" (7) = HARDFAULT
             STATE_0_NAME => "READY",
             STATE_1_NAME => "ARMED",

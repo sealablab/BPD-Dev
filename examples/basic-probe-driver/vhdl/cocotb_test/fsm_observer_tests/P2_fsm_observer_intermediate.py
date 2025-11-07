@@ -4,17 +4,20 @@ P2 - Intermediate Tests for BPD FSM Observer
 Standard validation tests covering fault detection and recovery.
 Tests verify sign-flip fault indication and state recovery behavior.
 
+UPDATED 2025-11-07: Now uses forge_hierarchical_encoder (200 units/state)
+Previous voltage spreading (0-2.5V) replaced with hierarchical encoding.
+
 Test Coverage:
-4. Sign-flip fault from IDLE
-5. Sign-flip fault from ARMED
-6. Sign-flip fault from FIRING (documentation test)
+4. Sign-flip fault from IDLE (0mV → negative)
+5. Sign-flip fault from ARMED (30mV → -30mV)
+6. Sign-flip fault from FIRING (61mV → -61mV documentation test)
 7. Fault clear recovery
 
 Expected Output: <50 lines (with GHDL aggressive filter)
 Expected Runtime: <30 seconds
 
 Author: Adapted from proposed_cocotb_test/test_bpd_fsm_observer.py
-Date: 2025-11-05
+Date: 2025-11-05 (Updated 2025-11-07 for hierarchical encoder)
 """
 
 import cocotb
