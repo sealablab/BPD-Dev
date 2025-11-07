@@ -2,10 +2,12 @@
 created: 2025-11-07
 type: handoff
 priority: P1
-status: complete
+status: superseded
+superseded_by: Test architecture redesign (commit 207949d)
 depends_on:
   - handoff-6-hierarchical-voltage-encoding
 completed: 2025-11-07
+revision: 2025-11-07 (redesigned with specialized agents)
 ---
 
 # Handoff 7: CocoTB Test Design for Hierarchical Encoder
@@ -522,3 +524,40 @@ Should we update ALL BPD tests or just the FSM observer test?
 ---
 
 **END OF HANDOFF 7**
+
+---
+
+## REVISION NOTE (2025-11-07)
+
+**Status:** This handoff has been superseded by a redesigned test architecture.
+
+**Reason for Revision:**
+- Created specialized CocoTB agent architecture (Designer + Runner agents)
+- Designer agent re-did test architecture from scratch
+- Found arithmetic error in original expected value calculation
+  - **Original (wrong):** Status offset = 78 digital units
+  - **Corrected:** Status offset = 99 digital units  
+  - **Formula:** `(127 × 100) // 128 = 99` (integer division critical!)
+
+**New Test Architecture:**
+- **Location:** `Obsidian/Project/Test-Architecture/forge_hierarchical_encoder_test_design.md`
+- **Git commit:** 207949dbe472b403fc9dd7ec388c254ba492683f
+- **Designer agent:** `.claude/agents/cocotb-progressive-test-designer/`
+- **Runner agent:** `.claude/agents/cocotb-progressive-test-runner/`
+
+**Key Improvements:**
+1. ✅ Correct expected value calculations (fixed integer division error)
+2. ✅ Better test design (4 P1 tests vs original 5)
+3. ✅ Complete helper function design (signal access patterns)
+4. ✅ No wrapper needed (correctly identified CocoTB compatibility)
+5. ✅ Implementation-ready pseudocode for Runner agent
+
+**Next Steps:**
+- Proceed to Handoff 8 with Runner agent executing new design
+- Runner implements tests from: `Obsidian/Project/Test-Architecture/forge_hierarchical_encoder_test_design.md`
+
+**Commit Reference:** 207949dbe472b403fc9dd7ec388c254ba492683f
+
+---
+
+**END OF REVISION NOTE**
