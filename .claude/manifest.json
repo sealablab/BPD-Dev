@@ -123,6 +123,12 @@
   ],
   "agents": [
     {
+      "name": "cocotb-integration-test",
+      "path": ".claude/agents/cocotb-integration-test",
+      "description": "CocoTB progressive testing following forge-vhdl standards",
+      "scope": "monorepo-level"
+    },
+    {
       "name": "deployment-orchestrator",
       "path": ".claude/agents/deployment-orchestrator",
       "description": "Hardware deployment workflows",
