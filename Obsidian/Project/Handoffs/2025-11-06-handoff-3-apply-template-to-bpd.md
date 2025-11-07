@@ -420,13 +420,27 @@ This allows:
 
 ## Handoff Chain
 
-**This handoff:** 3 of 3 (final)
-**Next handoff:** None (session complete)
+**This handoff:** 3 of 4
+**Next handoff:** [[2025-11-06-handoff-4-complete-forge-integration]]
 **Previous:** [[2025-11-06-handoff-2-update-bpd-rtl-yaml]]
 
 ---
 
+## Git Commits
+
+**Main commits:**
+- `36e4276` - feat: Apply FORGE template pattern to BPD (Handoff 3)
+- `49f3110` - feat: Create forge_cocotb reusable test infrastructure package
+- `2c9abaa` - fix: Update test wrapper to use BPD_forge_main entity
+- `df4d6b8` - docs: Add Handoff 4 - Complete FORGE integration
+
+**Branch:** BPD-Dev-main
+**Status:** Pushed to remote
+
+---
+
 **Created:** 2025-11-06 23:15
-**Status:** Pending
+**Completed:** 2025-11-06 23:45
+**Status:** Complete
 **Priority:** P1 (final integration)
 **Dependencies:** Handoff 1 & 2 complete
