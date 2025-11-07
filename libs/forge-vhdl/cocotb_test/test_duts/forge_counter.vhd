@@ -125,6 +125,13 @@ end architecture rtl;
 -- Layer 2: FORGE Shim (Extracts CR0[31:29], unpacks Control Registers)
 -- ============================================================================
 
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
+library WORK;
+use WORK.forge_common_pkg.ALL;
+
 entity forge_counter_shim is
     port (
         -- Clock & Reset
