@@ -12,9 +12,16 @@ Progressive Test Levels:
 - P4_EXHAUSTIVE: Unlimited tests, full verbosity (debug mode)
 
 Usage:
+    # Test infrastructure
     from forge_cocotb.conftest import setup_clock, reset_active_high
     from forge_cocotb.test_base import TestBase, VerbosityLevel
     from forge_cocotb.ghdl_filter import GHDLOutputFilter, FilterLevel
+
+    # Test runner
+    from forge_cocotb.runner import main as runner_main, TestRunner
+
+    # MCC utilities
+    from forge_cocotb.mcc_utils import copy_sources_for_mcc
 
 Author: Moku Instrument Forge Team
 Date: 2025-11-06
@@ -26,4 +33,6 @@ __all__ = [
     "conftest",
     "test_base",
     "ghdl_filter",
+    "runner",
+    "mcc_utils",
 ]

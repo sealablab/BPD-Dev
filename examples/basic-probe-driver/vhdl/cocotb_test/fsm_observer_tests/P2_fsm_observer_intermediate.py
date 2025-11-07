@@ -27,7 +27,7 @@ from pathlib import Path
 
 from forge_cocotb.conftest import setup_clock, reset_active_high
 from forge_cocotb.test_base import TestBase, VerbosityLevel
-from bpd_fsm_observer_tests.bpd_fsm_observer_constants import *
+from fsm_observer_tests.fsm_observer_constants import *
 
 
 class BpdFsmObserverIntermediateTests(TestBase):

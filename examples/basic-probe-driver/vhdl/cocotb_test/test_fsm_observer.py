@@ -9,13 +9,13 @@ Test level controlled by TEST_LEVEL environment variable:
 
 Usage:
     # P1 only (minimal output, LLM-optimized)
-    uv run python run.py bpd_fsm_observer
+    uv run python run.py fsm_observer
 
     # P2 (standard validation)
-    TEST_LEVEL=P2_INTERMEDIATE uv run python run.py bpd_fsm_observer
+    TEST_LEVEL=P2_INTERMEDIATE uv run python run.py fsm_observer
 
     # P3 (comprehensive)
-    TEST_LEVEL=P3_COMPREHENSIVE uv run python run.py bpd_fsm_observer
+    TEST_LEVEL=P3_COMPREHENSIVE uv run python run.py fsm_observer
 
 Author: Adapted from proposed_cocotb_test/test_bpd_fsm_observer.py
 Date: 2025-11-05
@@ -42,7 +42,7 @@ def get_test_level() -> TestLevel:
 
 
 @cocotb.test()
-async def test_bpd_fsm_observer_progressive(dut):
+async def test_fsm_observer(dut):
     """
     Progressive test entry point.
     Imports and runs appropriate test level based on TEST_LEVEL environment variable.
@@ -51,25 +51,25 @@ async def test_bpd_fsm_observer_progressive(dut):
 
     if test_level == TestLevel.P1_BASIC:
         # Import and run P1 tests
-        from bpd_fsm_observer_tests.P1_bpd_fsm_observer_basic import BpdFsmObserverBasicTests
+        from fsm_observer_tests.P1_fsm_observer_basic import BpdFsmObserverBasicTests
         tester = BpdFsmObserverBasicTests(dut)
         await tester.run_p1_basic()
 
     elif test_level == TestLevel.P2_INTERMEDIATE:
         # Import and run P2 tests
-        from bpd_fsm_observer_tests.P2_bpd_fsm_observer_intermediate import BpdFsmObserverIntermediateTests
+        from fsm_observer_tests.P2_fsm_observer_intermediate import BpdFsmObserverIntermediateTests
         tester = BpdFsmObserverIntermediateTests(dut)
         await tester.run_p2_intermediate()
 
     elif test_level == TestLevel.P3_COMPREHENSIVE:
         # Import and run P3 tests
-        from bpd_fsm_observer_tests.P3_bpd_fsm_observer_comprehensive import BpdFsmObserverComprehensiveTests
+        from fsm_observer_tests.P3_fsm_observer_comprehensive import BpdFsmObserverComprehensiveTests
         tester = BpdFsmObserverComprehensiveTests(dut)
         await tester.run_p3_comprehensive()
 
     elif test_level == TestLevel.P4_EXHAUSTIVE:
         # P4 not implemented yet
-        dut._log.warning("P4_EXHAUSTIVE not implemented for bpd_fsm_observer")
-        from bpd_fsm_observer_tests.P3_bpd_fsm_observer_comprehensive import BpdFsmObserverComprehensiveTests
+        dut._log.warning("P4_EXHAUSTIVE not implemented for fsm_observer")
+        from fsm_observer_tests.P3_fsm_observer_comprehensive import BpdFsmObserverComprehensiveTests
         tester = BpdFsmObserverComprehensiveTests(dut)
         await tester.run_p3_comprehensive()

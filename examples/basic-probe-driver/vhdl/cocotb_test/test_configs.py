@@ -44,8 +44,8 @@ class TestConfig:
 TESTS_CONFIG = {
     # === FSM Observer Integration ===
 
-    "bpd_fsm_observer": TestConfig(
-        name="bpd_fsm_observer",
+    "fsm_observer": TestConfig(
+        name="fsm_observer",
         sources=[
             # Serialization packages (forge-vhdl)
             FORGE_VHDL_PKG / "forge_serialization_types_pkg.vhd",
@@ -64,7 +64,7 @@ TESTS_CONFIG = {
             PROJECT_ROOT / "CustomWrapper_bpd_with_observer.vhd",
         ],
         toplevel="customwrapper",  # Must be lowercase for GHDL
-        test_module="test_bpd_fsm_observer_progressive",
+        test_module="test_fsm_observer",
         category="integration",
     ),
 }
