@@ -66,26 +66,42 @@
 |-----------|---------|-----------|
 | [Obsidian/](Obsidian/) | Git-first collaboration workspace for agent-human coordination | [Project/README.md](Obsidian/Project/README.md) |
 
-**Note:** Obsidian uses different PDA entry point - start with `Obsidian/Project/README.md` (not llms.txt) for session context
+**Parallel PDA Pattern:**
+- **Code/architecture:** llms.txt → CLAUDE.md → source (for VHDL/Python/YAML)
+- **Session/collaboration:** Obsidian/Project/README.md → subdirectory READMEs → handoff/session files
+
+**Vault-at-Repo-Root Design:**
+- Obsidian vault root = git repository root
+- Enables bidirectional wikilinks: `[[CLAUDE.md]]` (code) ↔ `[[Obsidian/Project/Handoffs/handoff-1.md]]` (session)
+- Two documentation worlds coexist without interference
+
+**Session Management:**
+- `/obsd_new_session` - Start session with goals, optional git branch
+- `/obsd_continue_session` - Resume with context load (commits + handoffs)
+- `/obsd_close_session` - Archive session + harvest `/compact` summary
 
 **Key Features:**
 - **Vault root = repo root** - Wikilinks to code files work naturally (e.g., `[[CLAUDE.md]]`, `[[libs/forge-vhdl/llms.txt]]`)
 - **Attention routing** - `@claude` / `@human` mentions for task delegation
 - **Session handoffs** - Ephemeral notes in `Project/Handoffs/` for multi-session work
-- **Reusable prompts** - Permanent prompt library in `Project/Prompts/`
-- **Templater templates** - 3 templates (handoff, prompt, task) for structured notes
+- **Context compaction integration** - `/obsd_close_session` harvests `/compact` summary
+- **Templater templates** - 6 templates (handoff, session-plan, session-summary, etc.)
 
 **Structure:**
 ```
 Obsidian/
-├── Project/Handoffs/    # Session continuation notes (ephemeral)
-├── Project/Prompts/     # Reusable prompt library (permanent)
-└── Templates/           # Templater templates
+├── Project/
+│   ├── Handoffs/YYYY-MM-DD/       # Session continuation (ephemeral)
+│   ├── Sessions/YYYY-MM-DD/       # Daily archives (permanent)
+│   ├── Prompts/                   # Reusable prompt library
+│   └── README.md                  # Entry point (not llms.txt!)
+└── Templates/                     # Templater templates (6 templates)
 ```
 
 **Git Integration:**
-- Notes = ephemeral working memory (delete after commit)
-- Git commits = permanent history (source of truth)
+- Handoffs = ephemeral working memory (delete after commit)
+- Sessions = permanent archives (committed)
+- Git commits = source of truth
 
 **Relationship to .claude/:**
 - `.claude/` - Agent infrastructure (system-level)
@@ -94,7 +110,7 @@ Obsidian/
 
 **When to use:**
 - Multi-session work requiring context preservation
-- Building reusable prompt libraries
+- Context compaction harvesting (>80% token usage)
 - Coordinating complex tasks with human decision points
 
 ## Common Workflows
@@ -295,7 +311,8 @@ pytest
 ---
 
 **Version:** v2.0.0
-**Last Updated:** 2025-11-06
+**Last Updated:** 2025-11-07
 **Architecture:** FORGE 3-layer (CR0[31:29] control scheme + app_reg_* abstraction)
+**Session Management:** Obsidian + /obsd_* commands + /compact harvesting
 **Main Branch:** main
 **License:** MIT
