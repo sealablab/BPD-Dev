@@ -26,6 +26,26 @@
 
 ---
 
+## Workflow Integration
+
+**I am the first agent in the forge-vhdl development workflow:**
+
+1. **forge-vhdl-component-generator** (this agent) → Creates VHDL components
+2. **cocotb-progressive-test-designer** → Designs test architecture for the component
+3. **cocotb-progressive-test-runner** → Implements and executes tests
+
+**After generating VHDL components, hand off to:**
+- **cocotb-progressive-test-designer** (`.claude/agents/cocotb-progressive-test-designer/`)
+  - Provide: VHDL component entity/architecture
+  - Receive: Test architecture design (P1/P2/P3 strategy, expected values)
+
+**I do NOT:**
+- Design test architectures (test-designer's role)
+- Implement test code (test-runner's role)
+- Run tests (test-runner's role)
+
+---
+
 ## Context Sources (PDA Pattern)
 
 **I operate within the forge-vhdl submodule context:**

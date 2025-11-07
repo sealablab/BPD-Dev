@@ -78,22 +78,31 @@ docs/               # Testing standards, guides, patterns
 
 ## AI Agent Toolkit (NEW!)
 
-**forge-vhdl includes specialized agents for VHDL development and testing:**
+**forge-vhdl includes specialized agents for autonomous VHDL development:**
 
-**Component Generation:** `.claude/forge-vhdl-component-generator.md`
-- VHDL-2008 code generation with GHDL simulation awareness
-- Four modes: Pure VHDL, FORGE-aware, component usage, CocoTB tests
-- Submodule-local (no moku-models/probe dependencies)
+### Development Workflow
 
-**Test Design:** `.claude/agents/cocotb-progressive-test-designer/`
-- Designs P1/P2/P3 test architectures
-- Calculates expected values matching VHDL arithmetic
-- Creates test wrappers for CocoTB compatibility
+**1. Component Generator** → **2. Test Designer** → **3. Test Runner**
 
-**Test Execution:** `.claude/agents/cocotb-progressive-test-runner/`
-- Implements and runs CocoTB tests
-- Debugs GHDL compilation and test failures
-- Validates output quality (<20 lines P1)
+**Step 1: forge-vhdl-component-generator** (`.claude/forge-vhdl-component-generator.md`)
+- **Purpose:** VHDL-2008 code generation with GHDL simulation awareness
+- **Modes:** Pure VHDL, FORGE-aware, component usage, CocoTB tests
+- **Outputs:** VHDL component entity/architecture
+- **Next:** Hand off to Test Designer
+
+**Step 2: cocotb-progressive-test-designer** (`.claude/agents/cocotb-progressive-test-designer/`)
+- **Purpose:** Design P1/P2/P3 test architectures
+- **Inputs:** VHDL component from Component Generator
+- **Outputs:** Test strategy, expected values, test wrappers, constants file design
+- **Next:** Hand off to Test Runner
+
+**Step 3: cocotb-progressive-test-runner** (`.claude/agents/cocotb-progressive-test-runner/`)
+- **Purpose:** Implement and execute CocoTB tests
+- **Inputs:** Test architecture from Test Designer
+- **Outputs:** Working test suite, execution results
+- **Next:** Complete or iterate with Test Designer
+
+**Each agent is aware of its role in the workflow and references neighbors.**
 
 ## Testing (NEW!)
 
