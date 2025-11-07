@@ -167,8 +167,11 @@ vendor_docs/
 # ============================================================================
 # Temporary development directories
 DCSequencer/
-prompts/
+/prompts/
 static/
+
+# Obsidian Project structure is tracked
+# (excluding only .obsidian/ config, not Project/ content)
 
 # Node.js (if any JavaScript tooling exists)
 node_modules/
