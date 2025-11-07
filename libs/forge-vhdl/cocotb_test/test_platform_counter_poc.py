@@ -101,13 +101,17 @@ class PlatformCounterTests(TestBase):
         # Reset and configure
         await reset_active_low(self.dut)
 
-        # Configure and enable
-        # Combine FORGE control bits with counter_max
-        cr0_value = ForgeControlBits.FULLY_ENABLED | (TestValues.P1_COUNTER_MAX & 0xFFFF)
-        self.dut.Control0.value = cr0_value
+        # Configure counter_max FIRST, then enable
+        # This ensures app_reg_counter_max is latched before global_enable goes high
+        cr0_with_counter_max = ForgeControlBits.POWER_ON | (TestValues.P1_COUNTER_MAX & 0xFFFF)
+        self.dut.Control0.value = cr0_with_counter_max
 
-        # Wait for ready_for_updates to latch app_reg_counter_max (2 cycles in IDLE)
-        await ClockCycles(self.dut.clk, 2)
+        # Wait for ready_for_updates to latch app_reg_counter_max (needs to be in IDLE with global_enable=0)
+        await ClockCycles(self.dut.clk, 4)
+
+        # Now enable FORGE control scheme
+        cr0_enabled = ForgeControlBits.FULLY_ENABLED | (TestValues.P1_COUNTER_MAX & 0xFFFF)
+        self.dut.Control0.value = cr0_enabled
 
         await ClockCycles(self.dut.clk, TestValues.P1_WAIT_CYCLES)
 
@@ -133,17 +137,20 @@ class PlatformCounterTests(TestBase):
         # Reset
         await reset_active_low(self.dut)
 
-        # Configure small counter_max for fast overflow
+        # Configure counter_max FIRST, then enable
         counter_max = 5
-        # Combine FORGE control bits with counter_max
-        cr0_value = ForgeControlBits.FULLY_ENABLED | (counter_max & 0xFFFF)
-        self.dut.Control0.value = cr0_value
+        cr0_with_counter_max = ForgeControlBits.POWER_ON | (counter_max & 0xFFFF)
+        self.dut.Control0.value = cr0_with_counter_max
 
-        # Wait for ready_for_updates to latch app_reg_counter_max (2 cycles in IDLE)
-        await ClockCycles(self.dut.clk, 2)
+        # Wait for ready_for_updates to latch app_reg_counter_max
+        await ClockCycles(self.dut.clk, 4)
 
-        # Wait for overflow (counter_max + extra cycles for GHDL)
-        await ClockCycles(self.dut.clk, counter_max + 3)
+        # Now enable FORGE control scheme
+        cr0_enabled = ForgeControlBits.FULLY_ENABLED | (counter_max & 0xFFFF)
+        self.dut.Control0.value = cr0_enabled
+
+        # Wait for overflow (counter_max + extra cycles for simulator timing)
+        await ClockCycles(self.dut.clk, counter_max + 5)
 
         # Check overflow occurred - counter should have wrapped to low value
         actual_count = get_counter_value(self.dut)
