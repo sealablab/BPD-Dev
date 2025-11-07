@@ -25,8 +25,8 @@ git submodule update --init --recursive
 uv sync
 
 # Test imports
-python -c "from moku_models import MOKU_GO_PLATFORM; print('✅ moku-models works')"
-python -c "from riscure_models import DS1120A_PLATFORM; print('✅ riscure-models works')"
+uv run python -c "from moku_models import MOKU_GO_PLATFORM; print('✅ moku-models works')"
+uv run python -c "from riscure_models import DS1120A_PLATFORM; print('✅ riscure-models works')"
 ```
 
 **If imports fail:** Run `uv pip install -e libs/moku-models/ -e libs/riscure-models/`
@@ -120,7 +120,7 @@ git submodule add https://github.com/YOUR-USERNAME/your-probe-models.git libs/yo
 uv sync
 
 # Test import
-python -c "from your_probe_models import YOUR_PROBE; print('✅ Works!')"
+uv run python -c "from your_probe_models import YOUR_PROBE; print('✅ Works!')"
 ```
 
 ### Step 3: Update Documentation
