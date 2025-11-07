@@ -42,6 +42,8 @@ output filtering + progressive test levels (P1/P2/P3/P4).
 #### Development Workflow
 
 ```
+0. forge-new-component (NEW!)
+   ↓ (Placeholder .md files with specifications)
 1. forge-vhdl-component-generator
    ↓ (VHDL component entity/architecture)
 2. cocotb-progressive-test-designer
@@ -53,29 +55,94 @@ output filtering + progressive test levels (P1/P2/P3/P4).
 
 **Each agent knows its neighbors and handoff patterns:**
 
+**Step 0: New Component Planner** (`.claude/forge-new-component.md`) ⭐ NEW!
+- **Role:** Requirements elicitation and file structure scaffolding
+- **Modes:** Interactive Q&A, placeholder markdown generation
+- **Scope:** Project planning (pre-implementation)
+- **Outputs:** Markdown placeholder files (.vhd.md, .py.md) with detailed specs
+- **Handoff to:** forge-vhdl-component-generator + cocotb-progressive-test-designer (parallel)
+- **Agent file:** `.claude/forge-new-component.md`
+- **Usage:** Start here for new components! Creates the plan before implementation.
+
+**Placeholder Pattern:**
+- Placeholder files use `.md` extension: `forge_util_pwm.vhd.md`
+- Each placeholder specifies which agent should implement it
+- Placeholders contain detailed requirements and specifications
+- Remove `.md` extension when implementation completes
+
 **Step 1: Component Generator** (`.claude/forge-vhdl-component-generator.md`)
 - **Role:** VHDL-2008 code generation with GHDL simulation awareness
 - **Modes:** Pure VHDL, FORGE-aware, component usage, CocoTB tests
 - **Scope:** Submodule-local (no moku-models/probe dependencies)
-- **Outputs:** VHDL component entity/architecture
+- **Inputs:** Requirements from forge-new-component placeholders OR direct specification
+- **Outputs:** VHDL component entity/architecture (.vhd files)
 - **Handoff to:** cocotb-progressive-test-designer
 - **Agent file:** `.claude/forge-vhdl-component-generator.md`
 
 **Step 2: Test Designer** (`.claude/agents/cocotb-progressive-test-designer/`)
 - **Role:** Design P1/P2/P3 test architectures
-- **Inputs:** VHDL component from Component Generator
+- **Inputs:** VHDL component + test placeholders from forge-new-component
 - **Outputs:** Test strategy, expected values, test wrappers, constants file design
 - **Handoff to:** cocotb-progressive-test-runner
 - **Agent files:** `.claude/agents/cocotb-progressive-test-designer/agent.md`, `README.md`
 
 **Step 3: Test Runner** (`.claude/agents/cocotb-progressive-test-runner/`)
 - **Role:** Implement and execute CocoTB tests
-- **Inputs:** Test architecture from Test Designer
+- **Inputs:** Test architecture + test placeholders from forge-new-component
 - **Outputs:** Working test suites, execution results, GHDL fixes
 - **Handoff to:** User or back to Test Designer if architecture needs refinement
 - **Agent files:** `.claude/agents/cocotb-progressive-test-runner/agent.md`, `README.md`
 
 **Key Principle:** Each agent references the next agent in the workflow and knows what to hand off.
+
+#### Quick Start Patterns
+
+**Pattern 1: New Component (Start with Planning)**
+```
+User: "I need a PWM generator"
+  ↓
+Step 0: forge-new-component
+  - Asks: Frequency range? Duty cycle resolution? Interfaces?
+  - Creates: forge_util_pwm.vhd.md, P1_forge_util_pwm_basic.py.md, etc.
+  ↓
+Step 1: forge-vhdl-component-generator
+  - Reads: forge_util_pwm.vhd.md
+  - Creates: forge_util_pwm.vhd (removes .md)
+  ↓
+Step 2: cocotb-progressive-test-designer
+  - Reads: forge_util_pwm.vhd + test placeholders
+  - Creates: Test architecture + constants file
+  ↓
+Step 3: cocotb-progressive-test-runner
+  - Reads: Test architecture
+  - Creates: P1_forge_util_pwm_basic.py (removes .md)
+  - Runs: Tests and debugs
+```
+
+**Pattern 2: Direct Implementation (Requirements Clear)**
+```
+User: "Generate VHDL for 16-bit up/down counter with overflow"
+  ↓
+Step 1: forge-vhdl-component-generator
+  - Direct spec → forge_util_counter.vhd
+  ↓
+Step 2: cocotb-progressive-test-designer
+  - Analyzes VHDL → Test architecture
+  ↓
+Step 3: cocotb-progressive-test-runner
+  - Implements and runs tests
+```
+
+**When to use forge-new-component:**
+- ✅ Complex components with unclear requirements
+- ✅ Multiple related files needed (entity + wrapper + multiple test levels)
+- ✅ Want to plan structure before implementation
+- ✅ Coordinating multiple agents (parallel VHDL + test development)
+
+**When to skip forge-new-component:**
+- ❌ Simple, well-defined components
+- ❌ Single file implementations
+- ❌ Requirements already crystal clear
 
 ---
 
