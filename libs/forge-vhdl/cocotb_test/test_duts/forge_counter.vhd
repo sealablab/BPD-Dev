@@ -1,0 +1,63 @@
+-- ============================================================================
+-- PLACEHOLDER: FORGE Counter Test DUT
+-- ============================================================================
+-- Purpose: Simple FORGE-compliant counter for platform testing validation
+--
+-- This file should be implemented by a specialized VHDL design sub-agent.
+--
+-- Requirements:
+-- 1. Implement FORGE 3-layer architecture pattern
+--    - Layer 2: FORGE shim (extracts CR0[31:29] control scheme)
+--    - Layer 3: Simple counter main logic
+--
+-- 2. Control Register Allocation:
+--    CR0[31]   - forge_ready (set by loader/test)
+--    CR0[30]   - user_enable (user control)
+--    CR0[29]   - clk_enable (clock gating)
+--    CR0[15:0] - counter_max (configurable count limit)
+--
+-- 3. Status Register Outputs:
+--    SR0[31:0] - counter_value (current count)
+--    SR1[0]    - counter_overflow (flag when count wraps)
+--
+-- 4. Behavior:
+--    - Counter increments every clock when global_enable = '1'
+--    - Wraps to 0 when reaching counter_max
+--    - Sets overflow flag on wrap
+--    - Resets to 0 when global_enable = '0'
+--
+-- 5. FORGE Control Scheme:
+--    global_enable = forge_ready AND user_enable AND clk_enable AND loader_done
+--    (loader_done hardcoded to '1' for this simple test DUT)
+--
+-- 6. Dependencies:
+--    - WORK.forge_common_pkg.ALL (for FORGE control scheme utilities)
+--    - WORK.forge_serialization_types_pkg.ALL (if needed)
+--
+-- Test Integration:
+--    - Used by test_platform_counter_poc.py to validate platform framework
+--    - Demonstrates real FPGA DUT (not mock) with FORGE control scheme
+--    - Validates CocoTB → Network CR → DUT control flow
+--
+-- Related Files:
+--    - libs/forge-vhdl/cocotb_test/test_platform_counter_poc.py (CocoTB test)
+--    - libs/platform/MCC_CustomInstrument.vhd (MCC interface reference)
+--    - libs/platform/FORGE_App_Wrapper.vhd (wrapper template reference)
+--    - examples/basic-probe-driver/vhdl/FORGE_ARCHITECTURE.md (architecture guide)
+--
+-- Sub-Agent Invocation:
+--    This file is a PLACEHOLDER for VHDL design work.
+--
+--    **NOT A COCOTB AGENT TASK** - This requires VHDL design expertise, not test design.
+--
+--    Use general-purpose VHDL design workflow:
+--    1. Reference FORGE architecture patterns from BPD example
+--    2. Follow 3-layer architecture (Layer 2 shim + Layer 3 main)
+--    3. Implement FORGE control scheme (CR0[31:29])
+--    4. Use forge_common_pkg utilities
+--
+--    This is NOT for cocotb-progressive-test-designer or cocotb-progressive-test-runner.
+--
+-- ============================================================================
+-- TODO: IMPLEMENT VHDL ENTITY AND ARCHITECTURE
+-- ============================================================================
