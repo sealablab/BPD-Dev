@@ -25,6 +25,28 @@ When building custom FPGA instruments, you face a critical challenge:
 
 ---
 
+## 🗂️ Obsidian Session Management
+
+**NEW:** Manage development sessions with AI-powered slash commands!
+
+```
+/obsd_new_session       # Start fresh session with goals
+/obsd_continue_session  # Resume previous session with full context
+/obsd_close_session     # Archive session + harvest /compact summary
+```
+
+**Key innovation:** Sessions can automatically harvest the `/compact` context summary, turning your full Claude conversation into structured archive files (commits.md, decisions.md, next-session-plan.md).
+
+**Features:**
+- 📝 **Vault-at-repo-root** - Obsidian wikilinks work naturally with code files
+- 🔄 **Parallel PDA pattern** - Separate navigation for code vs session docs
+- 💾 **Context compaction** - 40-50x compression while preserving critical details
+- 🌿 **Git integration** - Optional session branches, automatic archiving
+
+**See:** `Obsidian/Project/README.md` for complete workflow
+
+---
+
 ## 🚀 Quick Start
 
 ### Create Your First Instrument
@@ -397,23 +419,6 @@ end if;
 - Comprehensive .gitignore
 - Template-ready structure
 
----
-
-## 🗂️ Obsidian Session Management
-
-**Manage development sessions with three slash commands:**
-
-```
-/obsd_new_session       # Start fresh session with goals
-/obsd_continue_session  # Resume previous session
-/obsd_close_session     # Archive session + harvest /compact
-```
-
-**Key innovation:** Sessions can automatically harvest the `/compact` context summary, turning your full conversation into structured archive files!
-
-**See:** `Obsidian/Project/README.md` for complete workflow
-
----
 
 ## 📞 Get Help
 
