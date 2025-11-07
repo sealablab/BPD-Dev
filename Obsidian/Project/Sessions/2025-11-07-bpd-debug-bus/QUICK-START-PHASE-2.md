@@ -46,15 +46,31 @@ uv run python scripts/moku-deploy.py --help
 
 Build the BPD control tool that uses the deployment tool.
 
+## Branch Decision:
+
+The session branch `sessions/2025-11-07-bpd-debug-bus` still exists locally but all work through Phase 1 has been merged to main.
+
+**Option A: Continue on main** (Recommended)
+- Everything is already merged
+- Simpler workflow
+- No branch management needed
+
+**Option B: Return to session branch**
+```bash
+git checkout sessions/2025-11-07-bpd-debug-bus
+git merge main  # Bring in all the merged work
+```
+
 ## All Safe & Committed:
 
-- ✅ Everything on main branch
+- ✅ Everything merged to main
 - ✅ Claude branches cleaned up
 - ✅ No uncommitted work
 - ✅ Ready to continue!
 
 ---
 
-**Session branch:** main (everything merged)
-**Last commit:** 51e565e
+**Current branch:** main (all session work merged here)
+**Session branch:** sessions/2025-11-07-bpd-debug-bus (still exists but behind main)
+**Last commit:** 7cae8d0
 **Status:** Ready for Phase 2!
