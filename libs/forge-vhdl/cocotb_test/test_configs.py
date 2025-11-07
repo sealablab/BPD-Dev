@@ -112,6 +112,19 @@ TESTS_CONFIG = {
         category="debugging",
     ),
 
+    # === Platform Tests (test_duts/) ===
+
+    "platform_counter_poc": TestConfig(
+        name="platform_counter_poc",
+        sources=[
+            VHDL_PKG / "forge_common_pkg.vhd",               # FORGE control scheme
+            TESTS / "test_duts" / "forge_counter.vhd",       # Counter DUT
+        ],
+        toplevel="forge_counter",
+        test_module="test_platform_counter_poc",
+        category="platform",
+    ),
+
     # Note: Additional components that can have tests added:
     # - forge_voltage_threshold_trigger_core (utilities)
     # - fsm_observer (debugging)
