@@ -39,28 +39,43 @@ output filtering + progressive test levels (P1/P2/P3/P4).
 
 **forge-vhdl includes specialized agents for autonomous VHDL development:**
 
-**Component Generator** (`.claude/forge-vhdl-component-generator.md`)
-- **Purpose:** VHDL-2008 code generation with GHDL simulation awareness
+#### Development Workflow
+
+```
+1. forge-vhdl-component-generator
+   ↓ (VHDL component entity/architecture)
+2. cocotb-progressive-test-designer
+   ↓ (Test architecture, strategy, expected values)
+3. cocotb-progressive-test-runner
+   ↓ (Working test suite, results)
+   Complete or iterate with Test Designer
+```
+
+**Each agent knows its neighbors and handoff patterns:**
+
+**Step 1: Component Generator** (`.claude/forge-vhdl-component-generator.md`)
+- **Role:** VHDL-2008 code generation with GHDL simulation awareness
 - **Modes:** Pure VHDL, FORGE-aware, component usage, CocoTB tests
 - **Scope:** Submodule-local (no moku-models/probe dependencies)
-- **Use when:** Generating new VHDL utilities, packages, or test wrappers
+- **Outputs:** VHDL component entity/architecture
+- **Handoff to:** cocotb-progressive-test-designer
+- **Agent file:** `.claude/forge-vhdl-component-generator.md`
 
-**CocoTB Test Designer** (`.claude/agents/cocotb-progressive-test-designer/`)
-- **Purpose:** Design P1/P2/P3 test architectures
-- **Outputs:** Test strategy, expected values, test wrappers, constants files
-- **Use when:** Planning tests for new VHDL components
-- **Handoff to:** CocoTB Test Runner for implementation
+**Step 2: Test Designer** (`.claude/agents/cocotb-progressive-test-designer/`)
+- **Role:** Design P1/P2/P3 test architectures
+- **Inputs:** VHDL component from Component Generator
+- **Outputs:** Test strategy, expected values, test wrappers, constants file design
+- **Handoff to:** cocotb-progressive-test-runner
+- **Agent files:** `.claude/agents/cocotb-progressive-test-designer/agent.md`, `README.md`
 
-**CocoTB Test Runner** (`.claude/agents/cocotb-progressive-test-runner/`)
-- **Purpose:** Implement and execute CocoTB tests
-- **Inputs:** Test designs from Designer agent
-- **Outputs:** Working test suites, GHDL compilation fixes
-- **Use when:** Implementing test code and debugging failures
+**Step 3: Test Runner** (`.claude/agents/cocotb-progressive-test-runner/`)
+- **Role:** Implement and execute CocoTB tests
+- **Inputs:** Test architecture from Test Designer
+- **Outputs:** Working test suites, execution results, GHDL fixes
+- **Handoff to:** User or back to Test Designer if architecture needs refinement
+- **Agent files:** `.claude/agents/cocotb-progressive-test-runner/agent.md`, `README.md`
 
-**Agent Workflow:**
-1. Component Generator → Create VHDL component
-2. Test Designer → Plan test architecture
-3. Test Runner → Implement and execute tests
+**Key Principle:** Each agent references the next agent in the workflow and knows what to hand off.
 
 ---
 
