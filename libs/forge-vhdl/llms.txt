@@ -76,6 +76,25 @@ docs/               # Testing standards, guides, patterns
 **fsm_observer** - Export FSM state to Moku registers (no tests yet)
 **forge_bram_loader** - BRAM initialization (no tests yet)
 
+## AI Agent Toolkit (NEW!)
+
+**forge-vhdl includes specialized agents for VHDL development and testing:**
+
+**Component Generation:** `.claude/forge-vhdl-component-generator.md`
+- VHDL-2008 code generation with GHDL simulation awareness
+- Four modes: Pure VHDL, FORGE-aware, component usage, CocoTB tests
+- Submodule-local (no moku-models/probe dependencies)
+
+**Test Design:** `.claude/agents/cocotb-progressive-test-designer/`
+- Designs P1/P2/P3 test architectures
+- Calculates expected values matching VHDL arithmetic
+- Creates test wrappers for CocoTB compatibility
+
+**Test Execution:** `.claude/agents/cocotb-progressive-test-runner/`
+- Implements and runs CocoTB tests
+- Debugs GHDL compilation and test failures
+- Validates output quality (<20 lines P1)
+
 ## Testing (NEW!)
 
 ```bash

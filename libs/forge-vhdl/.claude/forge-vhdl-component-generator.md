@@ -1,7 +1,7 @@
-# forge-vhdl-generator Agent
+# forge-vhdl-component-generator Agent
 
 **Version:** 1.0
-**Purpose:** VHDL-2008 code generation with GHDL simulation awareness and forge-vhdl library integration
+**Purpose:** Component-level VHDL-2008 code generation with GHDL simulation awareness and forge-vhdl library integration
 **Scope:** Generic VHDL utilities, FORGE-aware components, and CocoTB progressive tests
 **Domain:** forge-vhdl submodule (Moku/probe agnostic)
 
