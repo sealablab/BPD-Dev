@@ -12,7 +12,7 @@ This monorepo implements the **FORGE 3-layer architecture** for building custom 
 
 **Key Innovation:** Safe initialization handshaking via **FORGE Control Scheme (CR0[31:29])** - a 3-bit calling convention between MCC CustomInstrument and your application logic.
 
-**Reference Implementation:** Basic Probe Driver (BPD) in `examples/basic-probe-driver/` demonstrates production-grade FORGE architecture with FSM observer for oscilloscope debugging.
+**Reference Implementation:** Basic Probe Driver (BPD) in `examples/basic-probe-driver/` demonstrates production-grade FORGE architecture with hierarchical encoder for oscilloscope debugging (14-bit state+status encoding).
 
 ---
 
@@ -398,7 +398,7 @@ All custom instruments follow this pattern:
 
 **BPD demonstrates:**
 - FORGE 3-layer architecture in production
-- FSM observer for oscilloscope debugging
+- Hierarchical encoder for oscilloscope debugging (forge_hierarchical_encoder)
 - CocoTB progressive testing (P1-P3 phases)
 - Integration with Moku + Riscure models
 - Proper use of forge_serialization_* packages
@@ -728,7 +728,7 @@ BPD uses **progressive test levels** (P1 → P2 → P3 → P4) for token-efficie
 - BPD-RTL.yaml specification (pending refinements)
 - VHDL serialization package migration to forge-vhdl
 - CocoTB progressive testing infrastructure
-- FSM observer for oscilloscope debugging
+- Hierarchical encoder for oscilloscope debugging (forge_hierarchical_encoder)
 
 **Next Steps:**
 1. Complete type system refinements (std_logic_reg, ±5V types)

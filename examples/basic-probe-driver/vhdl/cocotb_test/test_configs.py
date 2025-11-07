@@ -47,21 +47,26 @@ TESTS_CONFIG = {
     "fsm_observer": TestConfig(
         name="fsm_observer",
         sources=[
-            # Serialization packages (forge-vhdl)
+            # Common packages (forge-vhdl)
+            FORGE_VHDL_PKG / "forge_common_pkg.vhd",
             FORGE_VHDL_PKG / "forge_serialization_types_pkg.vhd",
             FORGE_VHDL_PKG / "forge_serialization_voltage_pkg.vhd",
             FORGE_VHDL_PKG / "forge_serialization_time_pkg.vhd",
 
-            # FSM Observer dependencies (forge-vhdl)
+            # Hierarchical encoder (NEW standard)
+            FORGE_VHDL_DEBUG / "forge_hierarchical_encoder.vhd",
+
+            # FSM Observer wrapper (compatibility layer)
             FORGE_VHDL_PKG / "forge_voltage_5v_bipolar_pkg.vhd",
             FORGE_VHDL_DEBUG / "fsm_observer.vhd",
 
             # Core FSM
             SRC_DIR / "basic_probe_driver_custom_inst_main.vhd",
 
-            # Wrapper with observer
+            # BPD Shim and Wrapper
+            PROJECT_ROOT / "BPD_forge_shim.vhd",
             PROJECT_ROOT / "CustomWrapper_test_stub.vhd",
-            PROJECT_ROOT / "CustomWrapper_bpd_with_observer.vhd",
+            PROJECT_ROOT / "CustomWrapper_bpd_forge.vhd",
         ],
         toplevel="customwrapper",  # Must be lowercase for GHDL
         test_module="test_fsm_observer",

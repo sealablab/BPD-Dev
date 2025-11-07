@@ -438,10 +438,18 @@ enable = int(dut.enable.value)  # Returns 0 or 1
 
 ### Debugging (forge_debug_*)
 
-**fsm_observer** (no tests yet)
-- Function: Export FSM state to Moku registers for oscilloscope debugging
-- Generics: NUM_STATES, V_MIN, V_MAX, FAULT_STATE_THRESHOLD
-- Use case: Hardware FSM debugging without simulation
+**forge_hierarchical_encoder** (P1 tests complete ✓)
+- Function: Encode FSM state + status to oscilloscope channel (NEW STANDARD)
+- Architecture: Pure arithmetic (zero LUTs)
+- Encoding: 200 digital units/state, status offset, fault sign flip
+- Tests: 4 P1 tests pass (reset, progression, offset, fault)
+- File: `vhdl/debugging/forge_hierarchical_encoder.vhd`
+
+**fsm_observer** (DEPRECATED - now wrapper around forge_hierarchical_encoder)
+- Function: Legacy compatibility wrapper for hierarchical encoder
+- Status: DEPRECATED as of 2025-11-07
+- Migration: Use forge_hierarchical_encoder directly for new designs
+- Note: Output scaling changed from voltage spreading to hierarchical encoding
 - File: `vhdl/debugging/fsm_observer.vhd`
 
 ### Loaders (forge_loader_*)
@@ -450,6 +458,14 @@ enable = int(dut.enable.value)  # Returns 0 or 1
 - Function: BRAM initialization from external sources
 - Use case: LUT loading, configuration data
 - File: `vhdl/loader/forge_bram_loader.vhd`
+
+### Python Utilities
+
+**hierarchical_decoder** (Production ready)
+- Function: Universal decoder for forge_hierarchical_encoder output
+- Location: `tools/decoder/hierarchical_decoder.py`
+- Features: State extraction, status decoding, fault detection
+- API: `decode_hierarchical_voltage()`, `decode_oscilloscope_voltage()`
 
 ---
 
