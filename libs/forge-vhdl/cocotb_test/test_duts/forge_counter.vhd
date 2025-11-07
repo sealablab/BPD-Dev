@@ -223,6 +223,10 @@ end architecture rtl;
 -- In production, this would be replaced by CustomWrapper (MCC interface).
 -- ============================================================================
 
+library IEEE;
+use IEEE.std_logic_1164.all;
+use IEEE.numeric_std.all;
+
 entity forge_counter is
     port (
         -- Clock & Reset
