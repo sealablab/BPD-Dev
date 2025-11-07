@@ -1,4 +1,4 @@
-# Project Workspace
+@R# Project Workspace
 
 **Purpose:** Obsidian-based workspace for agent-human collaboration within a git repository
 
