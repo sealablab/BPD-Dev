@@ -4,6 +4,10 @@
 # Comprehensive patterns for Moku FPGA development with Python tooling
 # Organized by category for clarity and maintainability
 
+# == users wip
+wip/
+.trash/
+
 # ============================================================================
 # Python
 # ============================================================================
