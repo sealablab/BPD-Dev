@@ -117,6 +117,28 @@ package forge_serialization_voltage_pkg is
         value : unsigned(6 downto 0)
     ) return std_logic_vector;
 
+    -- Convert raw register bits to voltage_input_5v_bipolar_s16
+    -- Range: ±5.0V, Bits: 16, Type: signed
+    function voltage_input_5v_bipolar_s16_from_raw(
+        raw : std_logic_vector(15 downto 0)
+    ) return signed;
+
+    -- Convert voltage_input_5v_bipolar_s16 to raw register bits
+    function voltage_input_5v_bipolar_s16_to_raw(
+        value : signed(15 downto 0)
+    ) return std_logic_vector;
+
+    -- Convert raw register bits to voltage_output_5v_bipolar_s16
+    -- Range: ±5.0V, Bits: 16, Type: signed
+    function voltage_output_5v_bipolar_s16_from_raw(
+        raw : std_logic_vector(15 downto 0)
+    ) return signed;
+
+    -- Convert voltage_output_5v_bipolar_s16 to raw register bits
+    function voltage_output_5v_bipolar_s16_to_raw(
+        value : signed(15 downto 0)
+    ) return std_logic_vector;
+
     -- Convert raw register bits to voltage_output_05v_s16
     -- Range: ±0.5V, Bits: 16, Type: signed
     function voltage_output_05v_s16_from_raw(
@@ -273,6 +295,34 @@ package body forge_serialization_voltage_pkg is
 
     function voltage_input_25v_u7_to_raw(
         value : unsigned(6 downto 0)
+    ) return std_logic_vector is
+    begin
+        return std_logic_vector(value);
+    end function;
+
+    function voltage_input_5v_bipolar_s16_from_raw(
+        raw : std_logic_vector(15 downto 0)
+    ) return signed is
+    begin
+        return signed(raw);
+    end function;
+
+    function voltage_input_5v_bipolar_s16_to_raw(
+        value : signed(15 downto 0)
+    ) return std_logic_vector is
+    begin
+        return std_logic_vector(value);
+    end function;
+
+    function voltage_output_5v_bipolar_s16_from_raw(
+        raw : std_logic_vector(15 downto 0)
+    ) return signed is
+    begin
+        return signed(raw);
+    end function;
+
+    function voltage_output_5v_bipolar_s16_to_raw(
+        value : signed(15 downto 0)
     ) return std_logic_vector is
     begin
         return std_logic_vector(value);

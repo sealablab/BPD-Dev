@@ -45,6 +45,17 @@ package forge_serialization_types_pkg is
     -- Convert std_logic to boolean
     function sl_to_bool(sl : std_logic) return boolean;
 
+    -- std_logic_reg: Direct register bit type
+    -- No conversion functions needed, maps 1:1 to std_logic
+    -- Used for single-bit control register fields (NOT boolean logic!)
+    function std_logic_reg_from_raw(
+        raw : std_logic
+    ) return std_logic;
+
+    function std_logic_reg_to_raw(
+        value : std_logic
+    ) return std_logic;
+
 end package forge_serialization_types_pkg;
 
 package body forge_serialization_types_pkg is
@@ -61,6 +72,16 @@ package body forge_serialization_types_pkg is
     function sl_to_bool(sl : std_logic) return boolean is
     begin
         return sl = '1';
+    end function;
+
+    function std_logic_reg_from_raw(raw : std_logic) return std_logic is
+    begin
+        return raw;  -- Identity function
+    end function;
+
+    function std_logic_reg_to_raw(value : std_logic) return std_logic is
+    begin
+        return value;  -- Identity function
     end function;
 
 end package body forge_serialization_types_pkg;

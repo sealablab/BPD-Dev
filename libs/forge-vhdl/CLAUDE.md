@@ -409,6 +409,33 @@ enable = int(dut.enable.value)  # Returns 0 or 1
 - Tests: None yet
 - File: `vhdl/packages/forge_common_pkg.vhd`
 
+**forge_serialization_types_pkg**
+- Function: Core type utilities for register serialization
+- Exports: Boolean conversions (`bool_to_sl`, `sl_to_bool`)
+- Exports: Register bit type (`std_logic_reg_from_raw`, `std_logic_reg_to_raw`)
+- Tests: None yet (identity functions, minimal logic)
+- Use case: MCC Control Register communication
+- File: `vhdl/packages/forge_serialization_types_pkg.vhd`
+- **New in v1.1:** `std_logic_reg` type for semantic correctness (register bits ≠ boolean logic)
+
+**forge_serialization_voltage_pkg**
+- Function: Voltage serialization for control registers
+- Exports: Voltage ↔ register bit conversion functions
+- Available ranges: ±0.5V, ±5V, ±20V, ±25V (16-bit/8-bit, signed/unsigned)
+- Tests: None yet (identity conversions, minimal logic)
+- Use case: MCC Control Register voltage communication
+- File: `vhdl/packages/forge_serialization_voltage_pkg.vhd`
+- **New in v1.1:** ±5V types (`voltage_input_5v_bipolar_s16`, `voltage_output_5v_bipolar_s16`)
+- **Critical:** Most common Moku DAC/ADC range (replaces incorrect ±0.5V usage)
+
+**forge_serialization_time_pkg**
+- Function: Time duration serialization for control registers
+- Exports: Time ↔ clock cycle conversion functions (clock-frequency aware)
+- Available: `ns_to_cycles`, `us_to_cycles`, `ms_to_cycles`, `s_to_cycles`
+- Tests: None yet
+- Use case: MCC Control Register timing parameters
+- File: `vhdl/packages/forge_serialization_time_pkg.vhd`
+
 ### Debugging (forge_debug_*)
 
 **fsm_observer** (no tests yet)

@@ -52,13 +52,15 @@ docs/               # Testing standards, guides, patterns
 **Details:** .migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md, .migration/voltage_types_reference.py
 
 **forge_serialization_types_pkg** - Core serialization type utilities (NEW!)
-- Boolean ↔ std_logic conversions
+- Boolean ↔ std_logic conversions (`bool_to_sl`, `sl_to_bool`)
+- Register bit type (`std_logic_reg_from_raw`, `std_logic_reg_to_raw`) - identity functions
 - Use with: forge_serialization_voltage_pkg, forge_serialization_time_pkg
 
 **forge_serialization_voltage_pkg** - Voltage register serialization (NEW!)
 - Converts voltage values ↔ register bits
-- Supports 23-type system (12 voltage types, various bit widths)
-- Use for: Control register communication
+- Available ranges: ±0.5V, ±5V, ±20V, ±25V (16-bit/8-bit, signed/unsigned variants)
+- New in v1.1: ±5V types (`voltage_input_5v_bipolar_s16`, `voltage_output_5v_bipolar_s16`)
+- Use for: Control register communication with Moku DAC/ADC
 
 **forge_serialization_time_pkg** - Time register serialization (NEW!)
 - Converts time durations ↔ clock cycles
