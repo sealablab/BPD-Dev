@@ -79,8 +79,9 @@ class PlatformCounterTests(TestBase):
         assert count_still_disabled == 0, ErrorMessages.COUNTING_WHILE_DISABLED
 
         # Set clk_enable (NOW ENABLED!)
-        set_counter_max(self.dut, TestValues.P1_COUNTER_MAX)
-        self.dut.Control0.value = ForgeControlBits.FULLY_ENABLED
+        # Combine FORGE control bits with counter_max
+        cr0_value = ForgeControlBits.FULLY_ENABLED | (TestValues.P1_COUNTER_MAX & 0xFFFF)
+        self.dut.Control0.value = cr0_value
         await ClockCycles(self.dut.clk, TestValues.P1_WAIT_CYCLES)
 
         count_enabled = get_counter_value(self.dut)
@@ -101,8 +102,9 @@ class PlatformCounterTests(TestBase):
         await reset_active_low(self.dut)
 
         # Configure and enable
-        set_counter_max(self.dut, TestValues.P1_COUNTER_MAX)
-        self.dut.Control0.value = ForgeControlBits.FULLY_ENABLED
+        # Combine FORGE control bits with counter_max
+        cr0_value = ForgeControlBits.FULLY_ENABLED | (TestValues.P1_COUNTER_MAX & 0xFFFF)
+        self.dut.Control0.value = cr0_value
         await ClockCycles(self.dut.clk, TestValues.P1_WAIT_CYCLES)
 
         # Read counter
@@ -129,8 +131,9 @@ class PlatformCounterTests(TestBase):
 
         # Configure small counter_max for fast overflow
         counter_max = 5
-        set_counter_max(self.dut, counter_max)
-        self.dut.Control0.value = ForgeControlBits.FULLY_ENABLED
+        # Combine FORGE control bits with counter_max
+        cr0_value = ForgeControlBits.FULLY_ENABLED | (counter_max & 0xFFFF)
+        self.dut.Control0.value = cr0_value
 
         # Wait for overflow (counter_max + extra cycles for GHDL)
         await ClockCycles(self.dut.clk, counter_max + 3)
