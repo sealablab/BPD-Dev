@@ -21,11 +21,9 @@ from cocotb.triggers import RisingEdge, ClockCycles
 import sys
 from pathlib import Path
 
-# Add parent directory for imports
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "forge-vhdl" / "tests"))
-
-from conftest import setup_clock, reset_active_high
-from test_base import TestBase, VerbosityLevel
+# Import from forge_cocotb package
+from forge_cocotb.conftest import setup_clock, reset_active_high
+from forge_cocotb.test_base import TestBase, VerbosityLevel
 from bpd_fsm_observer_tests.bpd_fsm_observer_constants import *
 
 

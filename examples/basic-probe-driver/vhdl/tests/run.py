@@ -30,10 +30,8 @@ sys.path.insert(0, str(Path(__file__).parent))
 # Import local test configs
 from test_configs import TESTS_CONFIG, get_test_names, get_tests_by_category, get_categories
 
-# Import GHDL output filter from forge-vhdl
-FORGE_VHDL_SCRIPTS = Path(__file__).parent.parent.parent / "libs" / "forge-vhdl" / "scripts"
-sys.path.insert(0, str(FORGE_VHDL_SCRIPTS))
-from ghdl_output_filter import GHDLOutputFilter, FilterLevel
+# Import GHDL output filter from forge_cocotb package
+from forge_cocotb.ghdl_filter import GHDLOutputFilter, FilterLevel
 
 # CocotB imports
 try:

@@ -20,8 +20,8 @@ PROJECT_ROOT = Path(__file__).parent.parent
 SRC_DIR = PROJECT_ROOT / "src"
 TESTS_DIR = PROJECT_ROOT / "tests"
 
-# External dependencies
-FORGE_VHDL = PROJECT_ROOT.parent / "libs" / "forge-vhdl"
+# External dependencies (monorepo root)
+FORGE_VHDL = PROJECT_ROOT.parent.parent.parent / "libs" / "forge-vhdl"
 FORGE_VHDL_PKG = FORGE_VHDL / "vhdl" / "packages"
 FORGE_VHDL_DEBUG = FORGE_VHDL / "vhdl" / "debugging"
 
