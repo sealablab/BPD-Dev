@@ -455,25 +455,89 @@ enable = int(dut.enable.value)  # Returns 0 or 1
 
 ## Testing Workflow
 
-### Running Tests
+### Two-Tier Testing Strategy
 
+**forge-vhdl uses a cascading testing approach with two execution tiers:**
+
+---
+
+#### Tier 1: Component Testing (Recommended for VHDL Components)
+
+**Use for:** Testing individual VHDL utilities/packages in isolation
+- forge_util_clk_divider
+- forge_lut_pkg
+- forge_voltage_*_pkg
+- forge_hierarchical_encoder
+- forge_debug_fsm_observer
+
+**Working Directory:** `libs/forge-vhdl/` (submodule level)
+
+**Command Pattern:**
 ```bash
-# Navigate to forge-vhdl
+# Navigate to forge-vhdl submodule
 cd libs/forge-vhdl
 
 # Run P1 tests (default, LLM-optimized)
-uv run python tests/run.py forge_util_clk_divider
+uv run python cocotb_test/run.py forge_util_clk_divider
 
 # Run P2 tests with more verbosity
 TEST_LEVEL=P2_INTERMEDIATE COCOTB_VERBOSITY=NORMAL \
-  uv run python tests/run.py forge_util_clk_divider
+  uv run python cocotb_test/run.py forge_util_clk_divider
 
 # List all available tests
-uv run python tests/run.py --list
+uv run python cocotb_test/run.py --list
 
 # Run all tests
-uv run python tests/run.py --all
+uv run python cocotb_test/run.py --all
 ```
+
+**Benefits:**
+- ✅ Clear intent: Component testing in isolation
+- ✅ Simpler command path (no `libs/forge-vhdl/` prefix)
+- ✅ Matches development workflow (work in submodule)
+- ✅ Portable (can fork forge-vhdl independently)
+
+**Note:** Even though you're in the submodule directory, uv uses the **workspace-level .venv** (at monorepo root). This is by design - uv workspaces share a single virtual environment.
+
+---
+
+#### Tier 2: Integration Testing (For Cross-Workspace Tests)
+
+**Use for:** Testing systems with cross-workspace dependencies
+- BPD FSM observer (uses moku-models)
+- Custom instruments (uses probe models)
+- Code generation workflows (uses forge-codegen)
+
+**Working Directory:** Monorepo root
+
+**Command Pattern:**
+```bash
+# From monorepo root
+uv run python examples/basic-probe-driver/vhdl/cocotb_test/run.py test_bpd_fsm_observer
+```
+
+**Benefits:**
+- ✅ Access to all workspace members
+- ✅ Can test cross-module integration
+- ✅ Matches production deployment environment
+
+---
+
+### When to Use Each Tier
+
+**Use Tier 1 (Submodule-Level) When:**
+- Testing VHDL component logic in isolation
+- No imports from other workspace members (moku-models, riscure-models, etc.)
+- Fast iteration cycle desired
+- Developing within forge-vhdl
+
+**Use Tier 2 (Monorepo-Level) When:**
+- Testing integration between multiple workspace members
+- Requires imports from moku-models, riscure-models, or forge-codegen
+- Validating deployment configuration
+- End-to-end system testing
+
+---
 
 ### Adding Tests for New Components
 
@@ -482,8 +546,9 @@ See `docs/PROGRESSIVE_TESTING_GUIDE.md` for step-by-step instructions.
 Quick summary:
 1. Copy template from `test_forge_util_clk_divider_progressive.py`
 2. Create `<component>_tests/` directory with constants + P1/P2 modules
-3. Update `tests/test_configs.py` with component entry
-4. Run tests, ensure <20 line P1 output
+3. Update `cocotb_test/test_configs.py` with component entry
+4. Run tests from `libs/forge-vhdl/`: `uv run python cocotb_test/run.py <component>`
+5. Ensure <20 line P1 output
 
 ---
 

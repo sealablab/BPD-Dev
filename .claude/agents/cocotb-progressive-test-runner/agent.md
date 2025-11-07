@@ -9,36 +9,45 @@
 
 ## Critical Execution Constraints
 
-### Python Environment: MANDATORY uv Usage
+### Python Environment: Two-Tier Testing Strategy
 
-**ALWAYS use the top-level uv workspace environment:**
+**Use submodule-level execution for component testing (RECOMMENDED):**
 
 ```bash
-# ✅ CORRECT - Use top-level uv workspace from monorepo root
-# (Assume you're already in monorepo root, don't hardcode paths)
-uv run python libs/forge-vhdl/cocotb_test/run.py <component>
-
-# ❌ WRONG - Don't cd into submodules or use local python
+# ✅ CORRECT - Component testing from forge-vhdl submodule
 cd libs/forge-vhdl
-python cocotb_test/run.py <component>
+uv run python cocotb_test/run.py <component>
+
+# ❌ WRONG - Unnecessary long path from monorepo root
+uv run python libs/forge-vhdl/cocotb_test/run.py <component>
 ```
 
 **Rationale:**
-- Top-level `pyproject.toml` defines workspace with all dependencies
-- Workspace members: `forge-vhdl`, `moku-models`, `riscure-models`, `forge-codegen`
-- Single unified dependency graph managed by uv
-- CocoTB, pydantic, pytest all installed at workspace level
+- Clearer intent: Working in forge-vhdl context
+- Simpler command paths (no `libs/forge-vhdl/` prefix)
+- Matches development workflow (work in submodule)
+- Still uses workspace-level .venv (uv shares single environment)
 
 **Test Execution Pattern:**
 ```bash
-# From monorepo root (wherever that is on user's system)
+# Tier 1: Component Testing (forge-vhdl components)
+cd libs/forge-vhdl
 
 # P1 tests (default)
-uv run python libs/forge-vhdl/cocotb_test/run.py forge_hierarchical_encoder
+uv run python cocotb_test/run.py forge_hierarchical_encoder
 
 # P2 tests
-TEST_LEVEL=P2_INTERMEDIATE uv run python libs/forge-vhdl/cocotb_test/run.py forge_hierarchical_encoder
+TEST_LEVEL=P2_INTERMEDIATE uv run python cocotb_test/run.py forge_hierarchical_encoder
 ```
+
+**For integration testing (cross-workspace dependencies):**
+```bash
+# Tier 2: Integration Testing (BPD + models)
+# From monorepo root
+uv run python examples/basic-probe-driver/vhdl/cocotb_test/run.py test_bpd_fsm_observer
+```
+
+**Note:** Both tiers use the **workspace-level .venv** at monorepo root. The difference is working directory (submodule vs root) for command clarity.
 
 ### Git Commit Strategy: Incremental and Token-Efficient
 
