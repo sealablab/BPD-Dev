@@ -104,6 +104,28 @@ errors = config.validate_routing()
 # Returns: list[str] of validation errors (empty if valid)
 ```
 
+**Validate YAML config files:**
+```bash
+# Recommended: Tier 1 (Component Testing - minimal deps, faster)
+cd libs/moku-models
+uv run python scripts/validate_moku_config.py ../../deployment.yaml
+# ✓ Only installs pydantic + pyyaml (~1ms, 2 packages)
+
+# Script handles:
+# - Platform string → object resolution
+# - Non-Pydantic field removal (description, physical_connections)
+# - Full Pydantic validation + routing checks
+```
+
+**Cascading pyproject.toml Strategy:**
+This library uses the monorepo's two-tier testing approach:
+- **Tier 1 (Component)**: Run from `libs/moku-models/` with minimal deps (recommended for validation)
+- **Tier 2 (Integration)**: Run from monorepo root with full workspace (for cross-library testing)
+
+Validation is a component-level operation (no cross-library deps needed), so Tier 1 is preferred.
+
+See: `Obsidian/Project/Review/CASCADING_PYPROJECT_STRATEGY.md` for complete rationale
+
 ## Documentation
 
 - **README.md** - Installation and basic usage
@@ -126,6 +148,9 @@ moku_models/
     ├── moku_lab.py      # MokuLabPlatform
     ├── moku_pro.py      # MokuProPlatform
     └── moku_delta.py    # MokuDeltaPlatform
+
+scripts/
+└── validate_moku_config.py  # YAML validation against Pydantic models
 ```
 
 ## Key Design Principles

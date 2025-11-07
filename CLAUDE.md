@@ -14,6 +14,8 @@ This monorepo implements the **FORGE 3-layer architecture** for building custom 
 
 **Reference Implementation:** Basic Probe Driver (BPD) in `examples/basic-probe-driver/` demonstrates production-grade FORGE architecture with hierarchical encoder for oscilloscope debugging (14-bit state+status encoding).
 
+**BPD Deployment Architecture:** See [Obsidian/Project/BPD-Two-Tool-Architecture.md](Obsidian/Project/BPD-Two-Tool-Architecture.md) for complete two-tool deployment + operation architecture (moku-go.py + bpd-debug.py).
+
 ---
 
 ## Critical Architectural Pattern: FORGE Control Scheme
@@ -762,6 +764,7 @@ BPD uses **progressive test levels** (P1 → P2 → P3 → P4) for token-efficie
 ### Architecture Deep Dives
 - **.claude/shared/ARCHITECTURE_OVERVIEW.md** - v2.0 repository structure
 - **.claude/shared/CONTEXT_MANAGEMENT.md** - Token optimization strategy
+- **Obsidian/Project/BPD-Two-Tool-Architecture.md** - **✅ AUTHORITATIVE** BPD deployment + operation architecture
 - **docs/migration/voltage_types_reference.py** - Voltage type system design doc (if exists)
 
 ---
