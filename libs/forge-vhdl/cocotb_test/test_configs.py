@@ -23,7 +23,7 @@ VHDL_PKG = VHDL / "packages"
 VHDL_UTIL = VHDL / "utilities"
 VHDL_DEBUG = VHDL / "debugging"
 VHDL_LOADER = VHDL / "loader"
-TESTS = PROJECT_ROOT / "tests"
+TESTS = PROJECT_ROOT / "cocotb_test"  # Note: Using cocotb_test, not tests
 
 
 @dataclass
@@ -98,6 +98,18 @@ TESTS_CONFIG = {
         toplevel="forge_voltage_5v_bipolar_pkg_tb_wrapper",
         test_module="test_forge_voltage_5v_bipolar_pkg_progressive",
         category="packages",
+    ),
+
+    # === Debugging (forge_debug_*) ===
+
+    "forge_hierarchical_encoder": TestConfig(
+        name="forge_hierarchical_encoder",
+        sources=[
+            VHDL_DEBUG / "forge_hierarchical_encoder.vhd",
+        ],
+        toplevel="forge_hierarchical_encoder",
+        test_module="forge_hierarchical_encoder_tests.P1_forge_hierarchical_encoder_basic",
+        category="debugging",
     ),
 
     # Note: Additional components that can have tests added:
