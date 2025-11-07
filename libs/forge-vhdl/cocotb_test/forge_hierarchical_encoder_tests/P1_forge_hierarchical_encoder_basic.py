@@ -58,7 +58,7 @@ class ForgeHierarchicalEncoderBasicTests(TestBase):
     async def test_reset(self):
         """Test reset drives output to 0."""
         await reset_active_high(self.dut, rst_signal="reset")
-        await ClockCycles(self.dut.clk, 1)
+        await ClockCycles(self.dut.clk, 2)  # GHDL needs 2 cycles for registered outputs
 
         actual = int(self.dut.voltage_out.value.signed_integer)
         assert actual == 0, ErrorMessages.RESET_OUTPUT.format(actual)
@@ -72,7 +72,7 @@ class ForgeHierarchicalEncoderBasicTests(TestBase):
         for state in TestValues.P1_STATES:
             self.dut.state_vector.value = state
             self.dut.status_vector.value = 0x00
-            await ClockCycles(self.dut.clk, 1)
+            await ClockCycles(self.dut.clk, 2)  # GHDL needs 2 cycles for registered outputs
 
             expected = TestValues.calculate_expected_digital(state, 0x00)
             actual = int(self.dut.voltage_out.value.signed_integer)
@@ -92,7 +92,7 @@ class ForgeHierarchicalEncoderBasicTests(TestBase):
         # Test status=0x00 (no offset)
         self.dut.state_vector.value = state
         self.dut.status_vector.value = 0x00
-        await ClockCycles(self.dut.clk, 1)
+        await ClockCycles(self.dut.clk, 2)  # GHDL needs 2 cycles for registered outputs
 
         expected_no_offset = TestValues.calculate_expected_digital(state, 0x00)
         actual_no_offset = int(self.dut.voltage_out.value.signed_integer)
@@ -102,7 +102,7 @@ class ForgeHierarchicalEncoderBasicTests(TestBase):
 
         # Test status=0x7F (max offset)
         self.dut.status_vector.value = 0x7F
-        await ClockCycles(self.dut.clk, 1)
+        await ClockCycles(self.dut.clk, 2)  # GHDL needs 2 cycles for registered outputs
 
         expected_max_offset = TestValues.calculate_expected_digital(state, 0x7F)
         actual_max_offset = int(self.dut.voltage_out.value.signed_integer)
@@ -126,14 +126,14 @@ class ForgeHierarchicalEncoderBasicTests(TestBase):
         # Normal (status[7]=0)
         self.dut.state_vector.value = state
         self.dut.status_vector.value = 0x00
-        await ClockCycles(self.dut.clk, 1)
+        await ClockCycles(self.dut.clk, 2)  # GHDL needs 2 cycles for registered outputs
 
         normal_output = int(self.dut.voltage_out.value.signed_integer)
         assert normal_output > 0, ErrorMessages.FAULT_NORMAL_SIGN.format(normal_output)
 
         # Fault (status[7]=1)
         self.dut.status_vector.value = 0x80
-        await ClockCycles(self.dut.clk, 1)
+        await ClockCycles(self.dut.clk, 2)  # GHDL needs 2 cycles for registered outputs
 
         fault_output = int(self.dut.voltage_out.value.signed_integer)
         assert fault_output < 0, ErrorMessages.FAULT_FLAG_SIGN.format(fault_output)
