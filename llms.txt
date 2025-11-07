@@ -60,6 +60,41 @@
 - Design: [docs/migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md](docs/migration/VOLTAGE_TYPE_SYSTEM_DESIGN.md)
 - Python reference: [docs/migration/voltage_types_reference.py](docs/migration/voltage_types_reference.py)
 
+### Obsidian Workspace Integration
+
+| Component | Purpose | Quick Ref |
+|-----------|---------|-----------|
+| [Obsidian/](Obsidian/) | Git-first collaboration workspace for agent-human coordination | [llms.txt](Obsidian/llms.txt) |
+
+**Key Features:**
+- **Vault root = repo root** - Wikilinks to code files work naturally (e.g., `[[CLAUDE.md]]`, `[[libs/forge-vhdl/llms.txt]]`)
+- **Attention routing** - `@claude` / `@human` mentions for task delegation
+- **Session handoffs** - Ephemeral notes in `Project/Handoffs/` for multi-session work
+- **Reusable prompts** - Permanent prompt library in `Project/Prompts/`
+- **Templater templates** - 3 templates (handoff, prompt, task) for structured notes
+
+**Structure:**
+```
+Obsidian/
+├── Project/Handoffs/    # Session continuation notes (ephemeral)
+├── Project/Prompts/     # Reusable prompt library (permanent)
+└── Templates/           # Templater templates
+```
+
+**Git Integration:**
+- Notes = ephemeral working memory (delete after commit)
+- Git commits = permanent history (source of truth)
+
+**Relationship to .claude/:**
+- `.claude/` - Agent infrastructure (system-level)
+- `Obsidian/` - User workspace (collaboration-level)
+- Both coexist with different purposes
+
+**When to use:**
+- Multi-session work requiring context preservation
+- Building reusable prompt libraries
+- Coordinating complex tasks with human decision points
+
 ## Common Workflows
 
 ### FORGE Architecture Development
@@ -112,6 +147,7 @@
 - libs/forge-vhdl/llms.txt
 - libs/moku-models/llms.txt
 - libs/riscure-models/llms.txt
+- Obsidian/llms.txt (if using workspace features)
 
 ### Tier 2: Deep Context (Load when designing/integrating)
 **Files:** CLAUDE.md files (~3-5k tokens each)
@@ -244,6 +280,9 @@ pytest
 
 ### Agents
 - **Monorepo agents:** [.claude/agents/](.claude/agents/) (deployment, hardware-debug, probe-design)
+
+### Workspace
+- **Obsidian integration:** [Obsidian/llms.txt](Obsidian/llms.txt) | [README.md](Obsidian/README.md) (agent-human collaboration)
 
 ### Submodule Context
 - **forge-codegen:** [llms.txt](tools/forge-codegen/llms.txt) | [CLAUDE.md](tools/forge-codegen/CLAUDE.md)
