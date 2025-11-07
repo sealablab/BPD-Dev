@@ -1,9 +1,108 @@
 # CocoTB Progressive Test Runner
 
-**Version:** 1.0 (2025-11-07)
+**Version:** 1.1 (2025-11-07)
 **Domain:** forge-vhdl component test execution and debugging
 **Scope:** Implement and run CocoTB tests for VHDL components (NOT integration testing)
 **Status:** ✅ Production-ready
+
+---
+
+## Critical Execution Constraints
+
+### Python Environment: MANDATORY uv Usage
+
+**ALWAYS use the top-level uv workspace environment:**
+
+```bash
+# ✅ CORRECT - Use top-level uv workspace from monorepo root
+# (Assume you're already in monorepo root, don't hardcode paths)
+uv run python libs/forge-vhdl/cocotb_test/run.py <component>
+
+# ❌ WRONG - Don't cd into submodules or use local python
+cd libs/forge-vhdl
+python cocotb_test/run.py <component>
+```
+
+**Rationale:**
+- Top-level `pyproject.toml` defines workspace with all dependencies
+- Workspace members: `forge-vhdl`, `moku-models`, `riscure-models`, `forge-codegen`
+- Single unified dependency graph managed by uv
+- CocoTB, pydantic, pytest all installed at workspace level
+
+**Test Execution Pattern:**
+```bash
+# From monorepo root (wherever that is on user's system)
+
+# P1 tests (default)
+uv run python libs/forge-vhdl/cocotb_test/run.py forge_hierarchical_encoder
+
+# P2 tests
+TEST_LEVEL=P2_INTERMEDIATE uv run python libs/forge-vhdl/cocotb_test/run.py forge_hierarchical_encoder
+```
+
+### Git Commit Strategy: Incremental and Token-Efficient
+
+**Commit often, report concisely:**
+
+1. **After each test implementation** - Commit constants, P1 module, etc.
+2. **After fixing bugs** - Commit individual fixes
+3. **After test passes** - Commit working state
+4. **Echo commit messages to files** - Save tokens, user likes watching git log
+
+**Pattern:**
+```bash
+# Write commit message to temporary file
+cat > /tmp/commit_msg.txt <<'EOF'
+test: Add P1 constants for forge_hierarchical_encoder
+
+Implement TestValues class with P1_STATES, P1_STATUS, and
+calculate_expected_digital() to match VHDL arithmetic.
+EOF
+
+# Display to user (token-efficient)
+cat /tmp/commit_msg.txt
+
+# Commit with saved message
+git add libs/forge-vhdl/cocotb_test/forge_hierarchical_encoder_tests/forge_hierarchical_encoder_constants.py
+git commit -F /tmp/commit_msg.txt
+
+# Clean up
+rm /tmp/commit_msg.txt
+```
+
+**Benefits:**
+- User sees commit messages in git log
+- Saves tokens (no need to echo full message in conversation)
+- Creates clean incremental history
+- Easy rollback if needed
+
+### Task Execution Order
+
+Execute Handoff 8 tasks **sequentially with commits between**:
+
+1. **Task 1:** Run forge_hierarchical_encoder P1 tests
+   - Verify test files exist
+   - Execute tests
+   - **Commit** if any test file fixes needed
+
+2. **Task 2:** Debug and fix test failures
+   - Fix each issue individually
+   - **Commit** each fix with descriptive message
+
+3. **Task 3:** Run P2 tests (optional, user preference)
+   - Only if P1 passes and time permits
+   - **Commit** P2 implementation if added
+
+4. **Task 4:** Run updated BPD FSM observer tests
+   - Verify decoder integration
+   - **Commit** any decoder fixes
+
+5. **Task 5:** Document test results
+   - Create test report file
+   - **Commit** documentation
+
+6. **Task 6:** Final commit of test suite
+   - Only if not already committed incrementally
 
 ---
 
@@ -445,13 +544,11 @@ TESTS_CONFIG = {
 
 ### Step 6: Run Tests
 
-**Execution commands:**
+**Execution commands (from monorepo root):**
 
 ```bash
-cd libs/forge-vhdl
-
-# Run P1 tests (default, LLM-optimized)
-uv run python cocotb_test/run.py forge_hierarchical_encoder
+# Run P1 tests (default, LLM-optimized) - Use workspace uv!
+uv run python libs/forge-vhdl/cocotb_test/run.py forge_hierarchical_encoder
 
 # Expected output: <20 lines, all green
 ```
