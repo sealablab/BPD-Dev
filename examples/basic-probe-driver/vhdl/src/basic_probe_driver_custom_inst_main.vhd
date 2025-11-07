@@ -54,7 +54,7 @@ use WORK.forge_serialization_types_pkg.all;
 use WORK.forge_serialization_voltage_pkg.all;
 use WORK.forge_serialization_time_pkg.all;
 
-entity basic_probe_driver_custom_inst_main is
+entity BPD_forge_main is
     generic (
         CLK_FREQ_HZ : integer := 125000000  -- Moku:Go clock frequency
     );
@@ -62,50 +62,51 @@ entity basic_probe_driver_custom_inst_main is
         ------------------------------------------------------------------------
         -- Clock and Reset
         ------------------------------------------------------------------------
-        Clk                : in  std_logic;
-        Reset              : in  std_logic;  -- Active-high reset
-        global_enable      : in  std_logic;  -- Combined VOLO ready signals
-        ready_for_updates  : out std_logic;  -- Handshake to shim
+        Clk               : in  std_logic;
+        Reset             : in  std_logic;  -- Active-high reset
+        global_enable     : in  std_logic;  -- Combined FORGE ready signals
+        ready_for_updates : out std_logic;  -- Handshake to shim
 
         ------------------------------------------------------------------------
-        -- Application Signals (Typed - from BasicAppDataTypes)
+        -- Application Signals (bpd_* prefix - meaningful domain names)
         ------------------------------------------------------------------------
         -- Arming and lifecycle
-        arm_enable           : in std_logic;               -- Arm the FSM (IDLE → ARMED)
-        ext_trigger_in       : in std_logic;               -- External trigger (ARMED → FIRING)
-        trigger_wait_timeout : in unsigned(15 downto 0);  -- Max wait in ARMED (s)
-        auto_rearm_enable    : in std_logic;               -- Re-arm after cooldown
-        fault_clear          : in std_logic;               -- Clear fault state
+        bpd_arm_enable           : in std_logic;               -- Arm the FSM (IDLE → ARMED)
+        bpd_ext_trigger_in       : in std_logic;               -- External trigger (ARMED → FIRING)
+        bpd_trigger_wait_timeout : in unsigned(15 downto 0);  -- Max wait in ARMED (s)
+        bpd_auto_rearm_enable    : in std_logic;               -- Re-arm after cooldown
+        bpd_fault_clear          : in std_logic;               -- Clear fault state
 
         -- Output controls (trigger path)
-        trig_out_voltage     : in signed(15 downto 0);    -- Trigger voltage (mV)
-        trig_out_duration    : in unsigned(15 downto 0);  -- Trigger pulse width (ns)
+        bpd_trig_out_voltage  : in signed(15 downto 0);    -- Trigger voltage (mV)
+        bpd_trig_out_duration : in unsigned(15 downto 0);  -- Trigger pulse width (ns)
 
         -- Output controls (intensity path)
-        intensity_voltage    : in signed(15 downto 0);    -- Intensity voltage (mV)
-        intensity_duration   : in unsigned(15 downto 0);  -- Intensity pulse width (ns)
+        bpd_intensity_voltage  : in signed(15 downto 0);    -- Intensity voltage (mV)
+        bpd_intensity_duration : in unsigned(15 downto 0);  -- Intensity pulse width (ns)
 
         -- Timing controls
-        cooldown_interval    : in unsigned(23 downto 0);  -- Cooldown period (μs)
+        bpd_cooldown_interval : in unsigned(23 downto 0);  -- Cooldown period (μs)
 
         -- Monitor/feedback
-        probe_monitor_feedback    : in signed(15 downto 0);  -- ADC feedback (mV)
-        monitor_enable            : in std_logic;             -- Enable comparator
-        monitor_threshold_voltage : in signed(15 downto 0);  -- Threshold (mV)
-        monitor_expect_negative   : in std_logic;             -- Polarity select
-        monitor_window_start      : in unsigned(31 downto 0); -- Window delay (ns)
-        monitor_window_duration   : in unsigned(31 downto 0); -- Window length (ns)
+        bpd_probe_monitor_feedback    : in signed(15 downto 0);  -- ADC feedback (mV)
+        bpd_monitor_enable            : in std_logic;             -- Enable comparator
+        bpd_monitor_threshold_voltage : in signed(15 downto 0);  -- Threshold (mV)
+        bpd_monitor_expect_negative   : in std_logic;             -- Polarity select
+        bpd_monitor_window_start      : in unsigned(31 downto 0); -- Window delay (ns)
+        bpd_monitor_window_duration   : in unsigned(31 downto 0); -- Window length (ns)
 
         ------------------------------------------------------------------------
-        -- Status Outputs (for test observability and external monitoring)
+        -- Physical I/O (DAC outputs)
         ------------------------------------------------------------------------
-        trig_out_active_port      : out std_logic;            -- Trigger output is active
-        intensity_out_active_port : out std_logic;            -- Intensity output is active
-        current_state_port        : out std_logic_vector(5 downto 0) -- Current FSM state
+        OutputA : out signed(15 downto 0);  -- Trigger output DAC
+        OutputB : out signed(15 downto 0);  -- Intensity output DAC
+        OutputC : out signed(15 downto 0);  -- Reserved
+        OutputD : out signed(15 downto 0)   -- Reserved
     );
-end entity basic_probe_driver_custom_inst_main;
+end entity BPD_forge_main;
 
-architecture rtl of basic_probe_driver_custom_inst_main is
+architecture rtl of BPD_forge_main is
 
     ----------------------------------------------------------------------------
     -- FSM State Constants (6-bit encoding for fsm_observer compatibility)
@@ -170,25 +171,26 @@ begin
     ------------------------------------------------------------------------
     -- Ready for Updates
     --
-    -- Always ready to accept register updates (shim handles atomicity)
+    -- Signal to shim when safe to update app_reg_* signals
+    -- Only safe when FSM is in IDLE state (not actively running a sequence)
     ------------------------------------------------------------------------
-    ready_for_updates <= '1';
+    ready_for_updates <= '1' when state = STATE_IDLE else '0';
 
     ------------------------------------------------------------------------
     -- Time to Cycles Conversions
     --
     -- Convert YAML time units to clock cycles using platform-aware functions
-    -- from basic_app_time_pkg
+    -- from forge_serialization_time_pkg
     ------------------------------------------------------------------------
-    trigger_wait_timeout_cycles    <= resize(s_to_cycles(trigger_wait_timeout, CLK_FREQ_HZ), 32);
-    trig_out_duration_cycles       <= resize(ns_to_cycles(trig_out_duration, CLK_FREQ_HZ), 32);
-    intensity_duration_cycles      <= resize(ns_to_cycles(intensity_duration, CLK_FREQ_HZ), 32);
-    cooldown_interval_cycles       <= resize(us_to_cycles(cooldown_interval, CLK_FREQ_HZ), 32);
-    monitor_window_start_cycles    <= resize(ns_to_cycles(monitor_window_start, CLK_FREQ_HZ), 32);
-    monitor_window_duration_cycles <= resize(ns_to_cycles(monitor_window_duration, CLK_FREQ_HZ), 32);
+    trigger_wait_timeout_cycles    <= resize(s_to_cycles(bpd_trigger_wait_timeout, CLK_FREQ_HZ), 32);
+    trig_out_duration_cycles       <= resize(ns_to_cycles(bpd_trig_out_duration, CLK_FREQ_HZ), 32);
+    intensity_duration_cycles      <= resize(ns_to_cycles(bpd_intensity_duration, CLK_FREQ_HZ), 32);
+    cooldown_interval_cycles       <= resize(us_to_cycles(bpd_cooldown_interval, CLK_FREQ_HZ), 32);
+    monitor_window_start_cycles    <= resize(ns_to_cycles(bpd_monitor_window_start, CLK_FREQ_HZ), 32);
+    monitor_window_duration_cycles <= resize(ns_to_cycles(bpd_monitor_window_duration, CLK_FREQ_HZ), 32);
 
     ------------------------------------------------------------------------
-    -- Edge Detector for fault_clear
+    -- Edge Detector for bpd_fault_clear
     ------------------------------------------------------------------------
     FAULT_CLEAR_EDGE_PROC: process(Clk)
     begin
@@ -196,31 +198,31 @@ begin
             if Reset = '1' then
                 fault_clear_prev <= '0';
             elsif global_enable = '1' then
-                fault_clear_prev <= fault_clear;
+                fault_clear_prev <= bpd_fault_clear;
             end if;
         end if;
     end process;
 
-    fault_clear_edge <= fault_clear and not fault_clear_prev;
+    fault_clear_edge <= bpd_fault_clear and not fault_clear_prev;
 
     ------------------------------------------------------------------------
     -- Monitor Comparator Logic
     --
-    -- Compares probe_monitor_feedback against threshold with polarity control
+    -- Compares bpd_probe_monitor_feedback against threshold with polarity control
     ------------------------------------------------------------------------
-    MONITOR_COMPARATOR: process(probe_monitor_feedback, monitor_threshold_voltage,
-                                 monitor_expect_negative)
+    MONITOR_COMPARATOR: process(bpd_probe_monitor_feedback, bpd_monitor_threshold_voltage,
+                                 bpd_monitor_expect_negative)
     begin
-        if monitor_expect_negative = '1' then
+        if bpd_monitor_expect_negative = '1' then
             -- Negative-going crossing detection (feedback < threshold)
-            if probe_monitor_feedback < monitor_threshold_voltage then
+            if bpd_probe_monitor_feedback < bpd_monitor_threshold_voltage then
                 threshold_crossed <= '1';
             else
                 threshold_crossed <= '0';
             end if;
         else
             -- Positive-going crossing detection (feedback > threshold)
-            if probe_monitor_feedback > monitor_threshold_voltage then
+            if bpd_probe_monitor_feedback > bpd_monitor_threshold_voltage then
                 threshold_crossed <= '1';
             else
                 threshold_crossed <= '0';
@@ -250,17 +252,17 @@ begin
     -- Implements FSM state transitions based on current state and inputs
     ------------------------------------------------------------------------
     FSM_NEXT_STATE: process(state, timeout_occurred, firing_complete,
-                           cooldown_complete, auto_rearm_enable,
-                           fault_clear_edge, fault_detected, arm_enable,
-                           ext_trigger_in)
+                           cooldown_complete, bpd_auto_rearm_enable,
+                           fault_clear_edge, fault_detected, bpd_arm_enable,
+                           bpd_ext_trigger_in)
     begin
         -- Default: hold current state
         next_state <= state;
 
         case state is
             when STATE_IDLE =>
-                -- Transition to ARMED when arm_enable asserted
-                if arm_enable = '1' then
+                -- Transition to ARMED when bpd_arm_enable asserted
+                if bpd_arm_enable = '1' then
                     next_state <= STATE_ARMED;
                 end if;
 
@@ -268,7 +270,7 @@ begin
                 if timeout_occurred = '1' then
                     -- Timeout watchdog expired
                     next_state <= STATE_FAULT;
-                elsif ext_trigger_in = '1' then
+                elsif bpd_ext_trigger_in = '1' then
                     -- External trigger received
                     next_state <= STATE_FIRING;
                 end if;
@@ -281,7 +283,7 @@ begin
 
             when STATE_COOLDOWN =>
                 if cooldown_complete = '1' then
-                    if auto_rearm_enable = '1' then
+                    if bpd_auto_rearm_enable = '1' then
                         -- Burst mode: re-arm automatically
                         next_state <= STATE_ARMED;
                     else
@@ -357,7 +359,7 @@ begin
                         end if;
 
                         -- Monitor window timing
-                        if monitor_enable = '1' then
+                        if bpd_monitor_enable = '1' then
                             if monitor_start_timer < monitor_window_start_cycles then
                                 -- Delay before window opens
                                 monitor_start_timer <= monitor_start_timer + 1;
@@ -442,48 +444,13 @@ begin
     end process;
 
     ------------------------------------------------------------------------
-    -- TODO: Output Driver Logic
+    -- Output Driver Logic
     --
-    -- Wire trig_out_voltage, intensity_voltage to actual DAC outputs
-    -- This requires DAC interface ports to be added to entity
+    -- Drive DAC outputs with configured voltages when outputs are active
     ------------------------------------------------------------------------
-    -- Example (when DAC ports added):
-    -- dac_trig_out <= trig_out_voltage when trig_out_active = '1' else (others => '0');
-    -- dac_intensity <= intensity_voltage when intensity_active = '1' else (others => '0');
-
-    ------------------------------------------------------------------------
-    -- TODO: FSM Observer Instantiation
-    --
-    -- Integrate fsm_observer.vhd for oscilloscope debugging
-    -- Requires volo_voltage_pkg and debug output port
-    ------------------------------------------------------------------------
-    -- Example:
-    -- FSM_DEBUG: entity WORK.fsm_observer
-    --     generic map (
-    --         NUM_STATES => 5,
-    --         V_MIN => 0.0,
-    --         V_MAX => 2.0,
-    --         FAULT_STATE_THRESHOLD => 4,
-    --         STATE_0_NAME => "IDLE",
-    --         STATE_1_NAME => "ARMED",
-    --         STATE_2_NAME => "FIRING",
-    --         STATE_3_NAME => "COOLDOWN",
-    --         STATE_4_NAME => "FAULT"
-    --     )
-    --     port map (
-    --         clk => Clk,
-    --         reset => Reset,
-    --         state_vector => state,
-    --         voltage_out => debug_fsm_voltage  -- Add to entity ports
-    --     );
-
-    ------------------------------------------------------------------------
-    -- Export Internal Signals to Output Ports
-    --
-    -- Make internal FSM signals visible for test observability
-    ------------------------------------------------------------------------
-    trig_out_active_port      <= trig_out_active;
-    intensity_out_active_port <= intensity_active;
-    current_state_port        <= state;
+    OutputA <= bpd_trig_out_voltage when trig_out_active = '1' else (others => '0');
+    OutputB <= bpd_intensity_voltage when intensity_active = '1' else (others => '0');
+    OutputC <= (others => '0');  -- Reserved for future use
+    OutputD <= (others => '0');  -- Reserved for future use
 
 end architecture rtl;

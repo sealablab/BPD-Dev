@@ -93,39 +93,46 @@ end entity BPD_forge_shim;
 architecture rtl of BPD_forge_shim is
 
     ----------------------------------------------------------------------------
-    -- Friendly Signal Declarations (MCC-Agnostic Interface)
+    -- Template-Level Application Register Signals (Generic Naming)
+    -- These use app_reg_* prefix for template reusability
     ----------------------------------------------------------------------------
 
     -- Lifecycle control
-    signal arm_enable           : std_logic;  -- Arm FSM (IDLE→ARMED transition)
-    signal ext_trigger_in       : std_logic;  -- External trigger input
-    signal auto_rearm_enable    : std_logic;  -- Re-arm after cooldown
-    signal fault_clear          : std_logic;  -- Clear fault state
+    signal app_reg_arm_enable           : std_logic;  -- Arm FSM (IDLE→ARMED transition)
+    signal app_reg_ext_trigger_in       : std_logic;  -- External trigger input
+    signal app_reg_auto_rearm_enable    : std_logic;  -- Re-arm after cooldown
+    signal app_reg_fault_clear          : std_logic;  -- Clear fault state
 
     -- Trigger output control
-    signal trig_out_voltage     : signed(15 downto 0);    -- Voltage (mV)
-    signal trig_out_duration    : unsigned(15 downto 0);  -- Duration (ns)
+    signal app_reg_trig_out_voltage     : signed(15 downto 0);    -- Voltage (mV)
+    signal app_reg_trig_out_duration    : unsigned(15 downto 0);  -- Duration (ns)
 
     -- Intensity output control
-    signal intensity_voltage    : signed(15 downto 0);    -- Voltage (mV)
-    signal intensity_duration   : unsigned(15 downto 0);  -- Duration (ns)
+    signal app_reg_intensity_voltage    : signed(15 downto 0);    -- Voltage (mV)
+    signal app_reg_intensity_duration   : unsigned(15 downto 0);  -- Duration (ns)
 
     -- Timing control
-    signal trigger_wait_timeout : unsigned(15 downto 0);  -- Timeout (s)
-    signal cooldown_interval    : unsigned(23 downto 0);  -- Cooldown (μs)
+    signal app_reg_trigger_wait_timeout : unsigned(15 downto 0);  -- Timeout (s)
+    signal app_reg_cooldown_interval    : unsigned(23 downto 0);  -- Cooldown (μs)
 
     -- Monitor/feedback
-    signal monitor_enable            : std_logic;              -- Enable comparator
-    signal monitor_expect_negative   : std_logic;              -- Polarity select
-    signal monitor_threshold_voltage : signed(15 downto 0);    -- Threshold (mV)
-    signal monitor_window_start      : unsigned(31 downto 0);  -- Window delay (ns)
-    signal monitor_window_duration   : unsigned(31 downto 0);  -- Window length (ns)
+    signal app_reg_monitor_enable            : std_logic;              -- Enable comparator
+    signal app_reg_monitor_expect_negative   : std_logic;              -- Polarity select
+    signal app_reg_monitor_threshold_voltage : signed(15 downto 0);    -- Threshold (mV)
+    signal app_reg_monitor_window_start      : unsigned(31 downto 0);  -- Window delay (ns)
+    signal app_reg_monitor_window_duration   : unsigned(31 downto 0);  -- Window length (ns)
 
     ----------------------------------------------------------------------------
     -- Global Enable Signal
     -- Combines all FORGE_READY control bits for safe operation
     ----------------------------------------------------------------------------
     signal global_enable : std_logic;
+
+    ----------------------------------------------------------------------------
+    -- Handshaking Signal
+    -- From main app indicating safe window to update app_reg_* signals
+    ----------------------------------------------------------------------------
+    signal ready_for_updates : std_logic;
 
 begin
 
@@ -141,96 +148,116 @@ begin
     global_enable <= combine_forge_ready(forge_ready, user_enable, clk_enable, loader_done);
 
     ----------------------------------------------------------------------------
-    -- Register Mapping: Control Registers → Friendly Signals
+    -- Register Synchronization: Control Registers → app_reg_* signals
     --
-    -- Extract appropriate bit ranges from raw Control Registers
+    -- Synchronizes register updates with ready_for_updates handshake
+    -- Only latches new values when main app indicates it's safe
     ----------------------------------------------------------------------------
+    REGISTER_SYNC: process(Clk, Reset)
+    begin
+        if Reset = '1' then
+            -- Initialize all app_reg_* signals to safe defaults
+            app_reg_arm_enable           <= '0';
+            app_reg_ext_trigger_in       <= '0';
+            app_reg_auto_rearm_enable    <= '0';
+            app_reg_fault_clear          <= '0';
+            app_reg_trig_out_voltage     <= (others => '0');
+            app_reg_trig_out_duration    <= to_unsigned(100, 16);   -- Safe default 100ns
+            app_reg_intensity_voltage    <= (others => '0');
+            app_reg_intensity_duration   <= to_unsigned(200, 16);   -- Safe default 200ns
+            app_reg_trigger_wait_timeout <= to_unsigned(2, 16);     -- Safe default 2s
+            app_reg_cooldown_interval    <= to_unsigned(10, 24);    -- Safe default 10μs
+            app_reg_monitor_enable            <= '1';               -- Enabled by default
+            app_reg_monitor_expect_negative   <= '1';               -- Negative polarity
+            app_reg_monitor_threshold_voltage <= to_signed(-200, 16); -- -200mV default
+            app_reg_monitor_window_start      <= (others => '0');
+            app_reg_monitor_window_duration   <= to_unsigned(5000, 32); -- 5μs default
 
-    -- CR1: Lifecycle control bits (4 bits)
-    arm_enable        <= app_reg_1(0);  -- Arm probe
-    ext_trigger_in    <= app_reg_1(1);  -- External trigger
-    auto_rearm_enable <= app_reg_1(2);  -- Auto re-arm
-    fault_clear       <= app_reg_1(3);  -- Clear fault
+        elsif rising_edge(Clk) then
+            if ready_for_updates = '1' then
+                -- Main app says safe to update - latch new register values
 
-    -- CR2: Trigger output voltage (16-bit signed, mV)
-    trig_out_voltage  <= signed(app_reg_2(15 downto 0));
+                -- CR1: Lifecycle control bits
+                app_reg_arm_enable        <= app_reg_1(0);
+                app_reg_ext_trigger_in    <= app_reg_1(1);
+                app_reg_auto_rearm_enable <= app_reg_1(2);
+                app_reg_fault_clear       <= app_reg_1(3);
 
-    -- CR3: Trigger pulse duration (16-bit unsigned, ns)
-    trig_out_duration <= unsigned(app_reg_3(15 downto 0));
+                -- CR2: Trigger output voltage
+                app_reg_trig_out_voltage  <= signed(app_reg_2(15 downto 0));
 
-    -- CR4: Intensity output voltage (16-bit signed, mV)
-    intensity_voltage <= signed(app_reg_4(15 downto 0));
+                -- CR3: Trigger pulse duration
+                app_reg_trig_out_duration <= unsigned(app_reg_3(15 downto 0));
 
-    -- CR5: Intensity pulse duration (16-bit unsigned, ns)
-    intensity_duration <= unsigned(app_reg_5(15 downto 0));
+                -- CR4: Intensity output voltage
+                app_reg_intensity_voltage <= signed(app_reg_4(15 downto 0));
 
-    -- CR6: Trigger wait timeout (16-bit unsigned, s)
-    trigger_wait_timeout <= unsigned(app_reg_6(15 downto 0));
+                -- CR5: Intensity pulse duration
+                app_reg_intensity_duration <= unsigned(app_reg_5(15 downto 0));
 
-    -- CR7: Cooldown interval (24-bit unsigned, μs)
-    cooldown_interval <= unsigned(app_reg_7(23 downto 0));
+                -- CR6: Trigger wait timeout
+                app_reg_trigger_wait_timeout <= unsigned(app_reg_6(15 downto 0));
 
-    -- CR8: Monitor control bits (2 bits)
-    monitor_enable          <= app_reg_8(0);  -- Enable monitor
-    monitor_expect_negative <= app_reg_8(1);  -- Polarity
+                -- CR7: Cooldown interval
+                app_reg_cooldown_interval <= unsigned(app_reg_7(23 downto 0));
 
-    -- CR9: Monitor threshold voltage (16-bit signed, mV)
-    monitor_threshold_voltage <= signed(app_reg_9(15 downto 0));
+                -- CR8: Monitor control bits
+                app_reg_monitor_enable          <= app_reg_8(0);
+                app_reg_monitor_expect_negative <= app_reg_8(1);
 
-    -- CR10: Monitor window start delay (32-bit unsigned, ns)
-    monitor_window_start <= unsigned(app_reg_10);
+                -- CR9: Monitor threshold voltage
+                app_reg_monitor_threshold_voltage <= signed(app_reg_9(15 downto 0));
 
-    -- CR11: Monitor window duration (32-bit unsigned, ns)
-    monitor_window_duration <= unsigned(app_reg_11);
+                -- CR10: Monitor window start delay
+                app_reg_monitor_window_start <= unsigned(app_reg_10);
+
+                -- CR11: Monitor window duration
+                app_reg_monitor_window_duration <= unsigned(app_reg_11);
+            end if;
+            -- else: Hold current values, main app is busy
+        end if;
+    end process;
 
     ----------------------------------------------------------------------------
     -- Instantiate Application Main Entity
     --
-    -- MCC-agnostic interface using friendly signal names only
+    -- Direct mapping: bpd_* ← app_reg_* (meaningful names ← generic names)
+    -- Main app is MCC-agnostic, uses domain-specific bpd_* naming
     ----------------------------------------------------------------------------
     BPD_MAIN_INST: entity WORK.BPD_forge_main
         generic map (
             CLK_FREQ_HZ => 125000000  -- Moku:Go clock frequency
         )
         port map (
-            -- Standard Control Signals
-            Clk    => Clk,
-            Reset  => Reset,
-            Enable => global_enable,
-            ClkEn  => clk_enable,
+            -- Clock and Control
+            Clk               => Clk,
+            Reset             => Reset,
+            global_enable     => global_enable,
+            ready_for_updates => ready_for_updates,  -- Output from main
 
-            -- Friendly Application Signals (Lifecycle)
-            arm_enable                => arm_enable,
-            ext_trigger_in            => ext_trigger_in,
-            trigger_wait_timeout      => trigger_wait_timeout,
-            auto_rearm_enable         => auto_rearm_enable,
-            fault_clear               => fault_clear,
+            -- Direct mapping: bpd_* ← app_reg_*
+            bpd_arm_enable           => app_reg_arm_enable,
+            bpd_ext_trigger_in       => app_reg_ext_trigger_in,
+            bpd_trigger_wait_timeout => app_reg_trigger_wait_timeout,
+            bpd_auto_rearm_enable    => app_reg_auto_rearm_enable,
+            bpd_fault_clear          => app_reg_fault_clear,
 
-            -- Trigger output control
-            trig_out_voltage          => trig_out_voltage,
-            trig_out_duration         => trig_out_duration,
+            bpd_trig_out_voltage     => app_reg_trig_out_voltage,
+            bpd_trig_out_duration    => app_reg_trig_out_duration,
 
-            -- Intensity output control
-            intensity_voltage         => intensity_voltage,
-            intensity_duration        => intensity_duration,
+            bpd_intensity_voltage    => app_reg_intensity_voltage,
+            bpd_intensity_duration   => app_reg_intensity_duration,
 
-            -- Timing control
-            cooldown_interval         => cooldown_interval,
+            bpd_cooldown_interval    => app_reg_cooldown_interval,
 
-            -- Monitor/feedback
-            probe_monitor_feedback    => InputA,
-            monitor_enable            => monitor_enable,
-            monitor_threshold_voltage => monitor_threshold_voltage,
-            monitor_expect_negative   => monitor_expect_negative,
-            monitor_window_start      => monitor_window_start,
-            monitor_window_duration   => monitor_window_duration,
+            bpd_probe_monitor_feedback    => InputA,
+            bpd_monitor_enable            => app_reg_monitor_enable,
+            bpd_monitor_threshold_voltage => app_reg_monitor_threshold_voltage,
+            bpd_monitor_expect_negative   => app_reg_monitor_expect_negative,
+            bpd_monitor_window_start      => app_reg_monitor_window_start,
+            bpd_monitor_window_duration   => app_reg_monitor_window_duration,
 
-            -- BRAM Interface (always exposed for consistency)
-            bram_addr => bram_addr,
-            bram_data => bram_data,
-            bram_we   => bram_we,
-
-            -- MCC I/O
+            -- Physical I/O
             OutputA => OutputA,
             OutputB => OutputB,
             OutputC => OutputC,
