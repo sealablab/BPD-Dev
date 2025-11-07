@@ -21,7 +21,8 @@ from pathlib import Path
 FORGE_VHDL = Path(__file__).parent.parent
 sys.path.insert(0, str(FORGE_VHDL))
 
-from forge_cocotb import TestBase, setup_clock, reset_active_low
+from forge_cocotb.test_base import TestBase
+from forge_cocotb.conftest import setup_clock, reset_active_low
 from test_platform_counter_poc_constants import *
 
 
