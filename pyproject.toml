@@ -18,9 +18,14 @@ dependencies = [
     "cocotb>=1.8.0",      # VHDL testing (forge-vhdl)
     "pydantic>=2.0.0",    # Models (moku-models, riscure-models, forge-codegen)
     "pytest>=7.0.0",      # Testing framework
-    "pyyaml>=6.0.0",      # YAML parsing (forge-codegen)
+    "pyyaml>=6.0.0",      # YAML parsing (forge-codegen, moku-deploy)
     "jinja2>=3.1.0",      # Template rendering (forge-codegen)
     "click>=8.1.0",       # CLI (forge-codegen)
+    "typer>=0.9.0",       # CLI framework (moku-deploy)
+    "loguru>=0.7.0",      # Logging (moku-deploy)
+    "rich>=13.0.0",       # Terminal UI (moku-deploy)
+    "zeroconf>=0.131.0",  # mDNS discovery (moku-deploy)
+    "moku>=3.0.0",        # Liquid Instruments Moku API (moku-deploy)
 ]
 
 [project.optional-dependencies]
