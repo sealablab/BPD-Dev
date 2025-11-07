@@ -4,6 +4,34 @@
 
 ---
 
+## Directory Structure (Date-Based)
+
+**Current organization:**
+```
+Handoffs/
+├── YYYY-MM-DD/              # Date-based subdirectories
+│   ├── handoff-file-1.md
+│   └── handoff-file-2.md
+└── README.md                # This file
+```
+
+**Example:**
+```
+Handoffs/
+├── 2025-11-06/              # 6 handoffs
+├── 2025-11-07/              # 5 handoffs
+├── 2025-11-08/              # 1 session start prompt
+└── README.md
+```
+
+**Benefits:**
+- Clean date-based grouping (matches Sessions/ structure)
+- Easy to find handoffs from specific sessions
+- Scalable for long-term projects
+- Quick timeline identification
+
+---
+
 ## What Are Handoffs?
 
 Handoff notes capture context when:
@@ -18,16 +46,17 @@ Handoff notes capture context when:
 
 ## Naming Convention
 
-**Format:** `YYYY-MM-DD-HHMM-<brief-description>.md`
+**Format:** `YYYY-MM-DD/<YYYY-MM-DD-handoff-N-description>.md`
 
 **Examples:**
-- `2025-11-06-1430-voltage-type-refactor.md`
-- `2025-11-06-1745-fsm-observer-debug.md`
-- `2025-11-07-0900-register-mapping-design.md`
+- `2025-11-06/2025-11-06-handoff-1-fix-forge-vhdl-types.md`
+- `2025-11-07/2025-11-07-handoff-6-hierarchical-voltage-encoding.md`
+- `2025-11-08/2025-11-08-start-handoff-9-hardware-validation.md`
 
 **Why this format:**
-- `YYYY-MM-DD-HHMM` - Sorts chronologically, unique identifier
-- `<brief-description>` - Quick topic identification
+- `YYYY-MM-DD/` subdirectory - Groups by date
+- `YYYY-MM-DD-handoff-N-` prefix - Maintains chronological sort within directory
+- `<description>` - Quick topic identification
 - `.md` - Markdown format
 
 ---
@@ -94,17 +123,23 @@ Handoff notes capture context when:
 ## Finding Handoffs
 
 ```bash
-# List all handoffs (newest first)
+# List all date directories
 ls -lt Obsidian/Project/Handoffs/
 
-# Find handoffs needing Claude action
-grep -l "@claude" Obsidian/Project/Handoffs/*.md
+# List handoffs from specific date
+ls -lt Obsidian/Project/Handoffs/2025-11-07/
 
-# Find handoffs needing human input
-grep -l "@human" Obsidian/Project/Handoffs/*.md
+# Find handoffs needing Claude action (recursive)
+grep -r "@claude" Obsidian/Project/Handoffs/
 
-# Search by topic
-grep -l "voltage" Obsidian/Project/Handoffs/*.md
+# Find handoffs needing human input (recursive)
+grep -r "@human" Obsidian/Project/Handoffs/
+
+# Search by topic (recursive)
+grep -r "voltage" Obsidian/Project/Handoffs/
+
+# List all handoffs across all dates
+find Obsidian/Project/Handoffs -name "*.md" -type f | grep -v README
 ```
 
 ---
@@ -118,10 +153,15 @@ grep -l "voltage" Obsidian/Project/Handoffs/*.md
 
 **Command:**
 ```bash
-# After committing work
-rm Obsidian/Project/Handoffs/2025-11-06-1500-completed-task.md
+# After committing work - delete individual handoff
+rm Obsidian/Project/Handoffs/2025-11-07/2025-11-07-handoff-8-cocotb-test-execution.md
 git add -u
 git commit -m "docs: Clean up completed handoff"
+
+# Or remove entire date directory if all handoffs complete
+rm -rf Obsidian/Project/Handoffs/2025-11-06/
+git add -u
+git commit -m "docs: Archive 2025-11-06 handoffs (all complete)"
 ```
 
 **Keep if:**

@@ -64,7 +64,9 @@
 
 | Component | Purpose | Quick Ref |
 |-----------|---------|-----------|
-| [Obsidian/](Obsidian/) | Git-first collaboration workspace for agent-human coordination | [llms.txt](Obsidian/llms.txt) |
+| [Obsidian/](Obsidian/) | Git-first collaboration workspace for agent-human coordination | [Project/README.md](Obsidian/Project/README.md) |
+
+**Note:** Obsidian uses different PDA entry point - start with `Obsidian/Project/README.md` (not llms.txt) for session context
 
 **Key Features:**
 - **Vault root = repo root** - Wikilinks to code files work naturally (e.g., `[[CLAUDE.md]]`, `[[libs/forge-vhdl/llms.txt]]`)

@@ -39,6 +39,11 @@ This monorepo uses a **three-tier context loading strategy** to optimize token u
    - hardware-debug (if debugging task)
    - etc.
 
+**For session/collaboration context:**
+- Use `Obsidian/Project/README.md` (not llms.txt) as entry point
+- Parallel PDA pattern: README.md → subdirectory READMEs → handoff/session files
+- Purpose: Session handoffs, daily wrap-ups, agent-human coordination
+
 **What you get:**
 - High-level architecture
 - Where to find detailed info (pointers to Tier 2)

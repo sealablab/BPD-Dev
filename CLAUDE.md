@@ -787,6 +787,20 @@ Follow tiered loading (see `.claude/shared/CONTEXT_MANAGEMENT.md`):
 - Test files
 - Specialized guides
 
+### Obsidian Navigation Pattern
+
+For **session context and collaboration workspace**, use parallel PDA pattern:
+
+**Entry point:** `Obsidian/Project/README.md` (not llms.txt)
+- Subdirectory READMEs: `Handoffs/README.md`, `Sessions/README.md`
+- Specific files: Handoff/session documents
+
+**Purpose:** Session handoffs, daily wrap-ups, and agent-human collaboration notes
+
+**Key difference from code PDA:**
+- Code/architecture: llms.txt → CLAUDE.md → source
+- Session/collaboration: Obsidian/Project/README.md → subdirectory READMEs → notes
+
 ### Critical Knowledge
 
 **ALWAYS REMEMBER:**

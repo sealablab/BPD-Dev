@@ -29,22 +29,32 @@ This directory provides a lightweight system for Claude and humans to collaborat
 
 ```
 Obsidian/Project/
-├── README.md          (this file)
-├── Handoffs/          Session continuation notes
-└── Prompts/           Reusable prompt library
+├── README.md          (this file - START HERE)
+├── Handoffs/          Session continuation notes (date-organized)
+├── Sessions/          Daily session archives (YYYY-MM-DD/)
+└── Test-Reports/      Test results and validation reports
 ```
+
+**PDA Pattern (Progressive Disclosure of Architecture):**
+
+For **Obsidian collaboration context**, use this entry point:
+1. **Start:** `Obsidian/Project/README.md` (this file)
+2. **Dive:** Specific subdirectory READMEs (Handoffs/, Sessions/)
+3. **Details:** Individual handoff/session files
+
+This parallels the monorepo-level pattern (`llms.txt → CLAUDE.md → source`) but for collaboration/session context instead of code/architecture context.
 
 ### Handoffs/
 **Purpose:** Session handoff notes for continuation between Claude sessions
+
+**Structure:** Date-based subdirectories (YYYY-MM-DD/)
+- Example: `Handoffs/2025-11-07/2025-11-07-handoff-6-hierarchical-voltage-encoding.md`
 
 **When to create:**
 - Session ends mid-task (incomplete work)
 - Complex multi-step work requiring multiple sessions
 - Blocked on human input or external dependency
 - Need to preserve context for future work
-
-**Naming convention:** `YYYY-MM-DD-HHMM-<brief-description>.md`
-- Example: `2025-11-06-1430-voltage-type-refactor.md`
 
 **Lifecycle:**
 1. Created by Claude at end of session
@@ -53,24 +63,25 @@ Obsidian/Project/
 
 **See:** [[Obsidian/Project/Handoffs/README|Handoffs README]]
 
-### Prompts/
-**Purpose:** Library of reusable prompts for common operations
+### Sessions/
+**Purpose:** Daily session archives capturing completed work, decisions, and next steps
 
-**When to create:**
-- Found a useful prompt pattern
-- Common analysis task (e.g., "analyze VHDL register mapping")
-- Workflow template (e.g., "add new voltage type")
-
-**Naming convention:** `<verb>-<noun>-<qualifier>.md` (no dates - timeless)
-- Example: `analyze-vhdl-packages.md`, `refactor-type-system.md`
+**Structure:** Date-based directories with standardized files:
+```
+Sessions/YYYY-MM-DD/
+├── session-summary.md       # Executive summary
+├── commits.md               # All commits with context
+├── decisions.md             # Architectural decisions
+├── next-session-plan.md     # Tomorrow's roadmap
+└── handoffs/                # Symbolic links to active handoffs
+```
 
 **Lifecycle:**
-1. Created when pattern emerges
-2. Reused across sessions
-3. Updated as pattern evolves
-4. Committed to git (permanent documentation)
+1. Created at end of each session (wrap-up)
+2. Committed to git (permanent record)
+3. Read at start of next session for context
 
-**See:** [[Obsidian/Project/Prompts/README|Prompts README]]
+**See:** [[Obsidian/Project/Sessions/README|Sessions README]]
 
 ---
 
@@ -252,7 +263,21 @@ touch Obsidian/Project/Handoffs/2025-11-06-1500-topic.md
 
 ## For Claude: How to Use This System
 
-When you see a note with `@claude`:
+### Starting a Session
+
+**Entry point:** Read this file first (Obsidian/Project/README.md)
+
+**Then navigate to:**
+- **Previous session:** `Sessions/YYYY-MM-DD/session-summary.md` (if continuing work)
+- **Active handoffs:** `Handoffs/YYYY-MM-DD/` (if mid-task)
+- **Next session plan:** `Sessions/YYYY-MM-DD/next-session-plan.md` (for today's priorities)
+
+**Context loading (PDA pattern):**
+1. Obsidian/Project/README.md (you are here)
+2. Sessions/YYYY-MM-DD/session-summary.md (if continuing work)
+3. Specific handoffs or session files as needed
+
+### When you see a note with `@claude`:
 
 1. **Read the note** - Understand context and request
 2. **Load referenced resources** - Use wikilinks to find related files
@@ -260,13 +285,21 @@ When you see a note with `@claude`:
 4. **Update the note** - Document what you did
 5. **Route back if needed** - Use `@human` if you need input
 
-When creating a handoff at end of session:
+### When creating a handoff at end of session:
 
 1. **Use template** - Start from `Obsidian/Templates/handoff.md`
 2. **Be specific** - Exact files, commands, next steps
 3. **Use @claude** - Make it clear you need continuation
 4. **Link to resources** - Use wikilinks to code files
-5. **Save in Handoffs/** - Follow naming convention
+5. **Save in Handoffs/YYYY-MM-DD/** - Follow date-based structure
+
+### When wrapping up a session:
+
+1. **Create session archive** - `Sessions/YYYY-MM-DD/`
+2. **Use template** - Start from `Obsidian/Templates/session-summary.md`
+3. **Fill in details** - Summary, commits, decisions, next steps
+4. **Commit everything** - Session archive + any handoffs
+5. **Clean state** - Ensure working tree clean
 
 ---
 
