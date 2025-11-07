@@ -14,7 +14,69 @@ This document captures critical lessons learned while developing and debugging V
 
 ## 🔴 Critical Issues (Must Fix First)
 
-### 0. CocoTB Interface Type Constraints ⚠️
+### 0. GHDL Initialization Bug with Registered Outputs ⚠️
+
+**Problem**: GHDL simulator has a known initialization issue where registered outputs remain at their reset value (typically 0) for the first clock cycle after inputs change, even when the VHDL logic should produce a non-zero output.
+
+**Symptoms**:
+```python
+# Test sets state_vector = 1, expects voltage_out = 200
+dut.state_vector.value = 1
+await ClockCycles(dut.clk, 1)
+actual = int(dut.voltage_out.value.signed_integer)
+# Expected: 200, Actual: 0  ❌
+```
+
+**Error Message**:
+```
+AssertionError: State=1, status=0x00: expected 200, got 0
+```
+
+**Root Cause**: GHDL doesn't properly propagate combinational signal changes through registered outputs on the first clock cycle. This is a simulator bug, not a VHDL or test bug.
+
+**Solution**: Wait for **2 clock cycles** after setting inputs, not 1.
+
+```python
+# ❌ WRONG: Only 1 cycle (fails with GHDL)
+dut.state_vector.value = 1
+await ClockCycles(dut.clk, 1)
+actual = int(dut.voltage_out.value.signed_integer)  # Gets 0 instead of 200
+
+# ✅ CORRECT: 2 cycles for registered outputs
+dut.state_vector.value = 1
+await ClockCycles(dut.clk, 2)  # Extra cycle for GHDL
+actual = int(dut.voltage_out.value.signed_integer)  # Gets 200 ✓
+```
+
+**When This Applies**:
+- ✅ Registered outputs (outputs assigned in `process(clk)`)
+- ❌ Combinational outputs (concurrent assignments outside processes)
+- ✅ After reset
+- ✅ After changing inputs
+- ✅ Sequential logic with internal state
+
+**Example VHDL Pattern Affected**:
+```vhdl
+-- Registered output (NEEDS 2 cycles in GHDL)
+process(clk, reset)
+begin
+    if reset = '1' then
+        output_value <= (others => '0');
+    elsif rising_edge(clk) then
+        output_value <= to_signed(combined_value, 16);  -- Registered
+    end if;
+end process;
+
+voltage_out <= output_value;  -- This is a registered output!
+```
+
+**Why This Matters**: GHDL initialization behavior differs from real hardware and other simulators (ModelSim, Questa). Always use 2 cycles for registered outputs to ensure portability and avoid false test failures.
+
+**Verification**: If changing 1 cycle → 2 cycles fixes the test, it's this GHDL bug.
+
+---
+
+### 1. CocoTB Interface Type Constraints ⚠️
 
 **Problem**: CocoTB CANNOT access `real`, `boolean`, `time`, `file`, or custom record types through entity ports.
 
