@@ -1,8 +1,21 @@
-# Session Handoff Prompts
+# Session Handoff Prompts (Historical)
 
-**Purpose:** Capture session context for continuation in new sessions or by other developers
+**NOTE:** This directory contains historical handoff examples from the template development process (2025-11-06).
 
-**NOTE:** These handoffs are historical records from the original development of this template. They may contain user-specific paths (e.g., `/Users/vmars20/`, `/Users/johnycsh/`) that were relevant during development but should be ignored when using this as a template.
+**For the current Obsidian-based handoff system, see [[Obsidian/Project/README.md]].**
+
+---
+
+## Historical Context
+
+These handoffs demonstrate the original session continuation pattern used during BPD development. They may contain user-specific paths (`/Users/vmars20/`, `/Users/johnycsh/`) from development sessions.
+
+**Current system:** The Obsidian workspace (`Obsidian/Project/`) is now the active handoff mechanism, using:
+- Simple `@claude` / `@human` mentions for routing
+- Templater templates for consistency
+- Git-first history (notes are ephemeral, commits are permanent)
+
+**Purpose of this directory:** Reference examples of comprehensive handoff structure, decision documentation, and agent delegation patterns.
 
 ---
 
