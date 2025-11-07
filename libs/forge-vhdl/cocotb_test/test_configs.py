@@ -125,6 +125,16 @@ TESTS_CONFIG = {
         category="platform",
     ),
 
+    "platform_bpd_deployment": TestConfig(
+        name="platform_bpd_deployment",
+        sources=[
+            TESTS / "test_duts" / "platform_test_dummy.vhd",  # Minimal dummy entity
+        ],
+        toplevel="platform_test_dummy",
+        test_module="test_platform_bpd_deployment",
+        category="platform",
+    ),
+
     # Note: Additional components that can have tests added:
     # - forge_voltage_threshold_trigger_core (utilities)
     # - fsm_observer (debugging)

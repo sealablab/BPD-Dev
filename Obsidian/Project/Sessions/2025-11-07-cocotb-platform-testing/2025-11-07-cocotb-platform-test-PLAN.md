@@ -1,4 +1,4 @@
-# CocoTB Platform Testing Framework - Session Plan
+claud# CocoTB Platform Testing Framework - Session Plan
 
 **Session:** 2025-11-07-cocotb-platform-testing
 **Branch:** sessions/2025-11-07-cocotb-platform-testing
@@ -14,7 +14,7 @@ Upgrade @libs/forge-vhdl/ cocotb test infrastructure to create a MokuConfig-driv
 4. **Target Configs:** Support bpd-deployment-setup1-dummy-dut.yaml and setup2-real-dut.yaml
 5. **Features:** Multi-channel capture, routing simulation, trigger modes
 
-## Phase 1: Foundation (Week 1) ✅ IN PROGRESS
+## Phase 1: Foundation (Week 1) ✅ 90% COMPLETE
 
 ### Completed
 - [x] Directory structure created
@@ -26,9 +26,9 @@ Upgrade @libs/forge-vhdl/ cocotb test infrastructure to create a MokuConfig-driv
 
 ### Remaining
 - [x] FORGE control validation tests ✅ (test_platform_forge_control.py - 208 lines, 2 test cases)
-- [ ] Simple counter PoC with FORGE scheme
-- [ ] Integration test with deployment YAMLs
-- [ ] Quick-start documentation
+- [x] Simple counter PoC with FORGE scheme ✅ (forge_counter.vhd + P1 tests - 3/3 passing)
+- [ ] Integration test with deployment YAMLs ⏳ IN PROGRESS
+- [ ] Quick-start documentation ⏳ IN PROGRESS
 
 ### Key Files Created
 ```
@@ -47,8 +47,16 @@ libs/forge-vhdl/cocotb_test/platform/
 - **test_platform_forge_control.py**: 2 test cases validating CR0[31:29] sequencing
   - `test_forge_control_sequence()`: Tests power-on state, enable sequence, network delays
   - `test_network_cr_primitives()`: Tests concurrent CR updates, network statistics
+- **forge_counter.vhd**: 3-layer FORGE architecture (main → shim → wrapper)
+  - P1 tests: 3/3 passing (control sequence, basic operation, overflow)
+  - Demonstrates ready_for_updates handshaking protocol
+  - Validates two-phase enable sequence (config first, then FORGE bits)
+- **4-agent workflow system**: forge-new-component → vhdl-generator → test-designer → test-runner
+  - Successfully coordinated agent workflow for counter PoC
+  - Validated placeholder file approach (.vhd.md, .py.md)
+  - Now documented in llms.txt and CLAUDE.md
 - **Network delays**: Successfully implemented 200ms realistic delays
-- **Commit history**: 2 commits (2435389, 8cbf9ff) with 1,590 lines added
+- **Commit history**: 10 commits with ~2,000 lines added (infrastructure + counter PoC)
 
 ## Phase 2: BPD Deployment Validation (Week 2)
 
@@ -147,23 +155,26 @@ uv run python cocotb_test/run.py platform_bpd_deployment \
 Network-settable CR primitives with realistic delays create explicit boundary between "outside world" (Python scripts) and FPGA simulation, matching real MCC behavior.
 
 ## Current Status
-Phase 1 infrastructure and FORGE validation complete (70%). Need to:
+Phase 1 infrastructure and FORGE validation (90% complete). Need to:
 1. ~~Create FORGE validation tests~~ ✅ DONE
-2. Build simple counter PoC
-3. Test with deployment YAMLs
-4. Document quick-start
+2. ~~Build simple counter PoC~~ ✅ DONE
+3. Test with deployment YAMLs ⏳ IN PROGRESS
+4. Document quick-start ⏳ IN PROGRESS
 
 ## Next Actions
 1. ~~Create test_platform_forge_control.py~~ ✅ DONE (commit 8cbf9ff)
-2. Create forge_counter.vhd test DUT
+2. ~~Create forge_counter.vhd test DUT~~ ✅ DONE (commit 98bbe3d)
 3. ~~Validate FORGE control sequencing~~ ✅ DONE
 4. ~~Test network CR delays~~ ✅ DONE (200ms delays verified)
+5. Create quick-start documentation ⏳ IN PROGRESS
+6. Create integration test with deployment YAMLs ⏳ IN PROGRESS
 
 ## Time Estimate
-- Phase 1: 3-4 days (70% complete - FORGE tests done, need counter PoC + docs)
+- Phase 1: 3-4 days (90% complete - infrastructure + counter PoC done, finalizing docs + integration test)
 - Phase 2: 3-4 days
 - Phase 3: 4-5 days
 - **MVP Total:** 1-2 weeks for Phase 1+2
+- **Estimated time to Phase 1 completion:** 2-3 hours
 
 ## Notes
 - Focus on FORGE control scheme, not BPD-specific FSM
