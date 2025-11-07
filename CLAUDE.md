@@ -339,12 +339,15 @@ All custom instruments follow this pattern:
 - Computes `global_enable` from 4 conditions
 - **Generation:** YAML → VHDL (via forge-codegen, future automation)
 - **Current:** Hand-written per application
+- **Template:** See `libs/platform/FORGE_App_Wrapper.vhd` for wrapper pattern
+- **MCC Interface:** Uses `libs/platform/MCC_CustomInstrument.vhd` entity
 
 **Layer 3: <App>_forge_main.vhd** (Present)
 - Pure application logic (FSM, timers, outputs)
 - Zero knowledge of Control Registers
 - Zero knowledge of FORGE control scheme
 - **Portability:** Can be reused across platforms
+- **Example:** `examples/basic-probe-driver/vhdl/src/basic_probe_driver_custom_inst_main.vhd`
 
 ### Key Benefits
 
@@ -373,6 +376,18 @@ All custom instruments follow this pattern:
 | [forge-codegen](tools/forge-codegen/) | YAML → VHDL code generator (23-type system) | [llms.txt](tools/forge-codegen/llms.txt) |
 
 **Note:** forge-codegen is temporarily not used in current BPD workflow (manual VHDL development phase).
+
+### Platform Templates (libs/platform/)
+
+| File | Purpose | Status |
+|------|---------|--------|
+| [MCC_CustomInstrument.vhd](libs/platform/MCC_CustomInstrument.vhd) | **Authoritative** MCC interface entity (16 CR, 16 SR) | DO NOT MODIFY |
+| [FORGE_App_Wrapper.vhd](libs/platform/FORGE_App_Wrapper.vhd) | **Template** for FORGE wrapper implementation | CUSTOMIZE PER APP |
+
+**Key Points:**
+- MCC_CustomInstrument.vhd is simplified vendor interface (isolated from upstream changes)
+- FORGE_App_Wrapper.vhd demonstrates proper FORGE control scheme + app_reg_* abstraction
+- These templates are referenced in MCC CustomInstrument Interface section above
 
 ### Reference Implementation: Basic Probe Driver (BPD)
 
@@ -410,9 +425,10 @@ All custom instruments follow this pattern:
 
 ### Known Gaps and Refinements Needed
 
-#### Issue #1: Missing `std_logic_reg` Datatype ⭐ PRIORITY 1
+#### Issue #1: Missing `std_logic_reg` Datatype ✅ RESOLVED (2025-11-06)
 
-**Current State:** Using `boolean` as workaround for single-bit register fields
+**Previous State:** Using `boolean` as workaround for single-bit register fields
+**Current State:** `std_logic_reg` type added to `forge_serialization_types_pkg.vhd`
 
 **Affected fields in BPD-RTL.yaml:**
 ```yaml
@@ -430,22 +446,23 @@ All custom instruments follow this pattern:
 - Generates `bool_to_sl()` / `sl_to_bool()` conversion overhead
 - Conceptually wrong: these are **register bits**, not boolean logic
 
-**Recommended Solution:**
+**Solution Implemented:**
+- Added `std_logic_reg_from_raw()` and `std_logic_reg_to_raw()` to `forge_serialization_types_pkg.vhd`
+- Identity functions (zero overhead)
+- File: `libs/forge-vhdl/vhdl/packages/forge_serialization_types_pkg.vhd:48-57, 77-85`
 
-Add to `forge_serialization_types_pkg.vhd`:
-```vhdl
--- std_logic_reg: Direct register bit type
--- No conversion functions needed, maps 1:1 to std_logic
-```
+**Next Steps:**
+- Update BPD-RTL.yaml to use `std_logic_reg` instead of `boolean` for 6 fields (see Handoff 2)
 
 **Impact:**
-- Cleaner generated VHDL (no conversion overhead)
-- Semantically correct (register bit ≠ boolean logic)
-- Simpler shim layer generation
+- ✅ Cleaner generated VHDL (no conversion overhead)
+- ✅ Semantically correct (register bit ≠ boolean logic)
+- ✅ Simpler shim layer generation
 
-#### Issue #2: Missing ±5V Voltage Type ⭐ PRIORITY 1
+#### Issue #2: Missing ±5V Voltage Type ✅ RESOLVED (2025-11-06)
 
-**Current State:** BPD-RTL.yaml uses `voltage_output_05v_s16` which means **±0.5V**, not ±5V!
+**Previous State:** BPD-RTL.yaml uses `voltage_output_05v_s16` which means **±0.5V**, not ±5V!
+**Current State:** ±5V types added to `forge_serialization_voltage_pkg.vhd`
 
 **Problem in BPD-RTL.yaml:**
 ```yaml
@@ -461,34 +478,17 @@ Add to `forge_serialization_types_pkg.vhd`:
 
 **Available voltage ranges in forge_serialization_voltage_pkg.vhd:**
 - ±0.5V ✓ (too small for BPD)
+- ±5V ✅ **ADDED!** (most common Moku DAC/ADC range)
 - ±20V ✓ (works but overkill)
 - ±25V ✓ (works but overkill)
-- **±5V** ❌ **MISSING!**
 
-**Recommended Solution:**
+**Solution Implemented:**
+- Added `voltage_input_5v_bipolar_s16_from_raw()` / `_to_raw()`
+- Added `voltage_output_5v_bipolar_s16_from_raw()` / `_to_raw()`
+- Identity conversion functions (type cast only)
+- File: `libs/forge-vhdl/vhdl/packages/forge_serialization_voltage_pkg.vhd:120-140, 303-329`
 
-Add to `forge_serialization_voltage_pkg.vhd`:
-```vhdl
--- Range: ±5.0V, Bits: 16, Type: signed
-function voltage_output_5v_bipolar_s16_from_raw(
-    raw : std_logic_vector(15 downto 0)
-) return signed;
-
-function voltage_output_5v_bipolar_s16_to_raw(
-    value : signed(15 downto 0)
-) return std_logic_vector;
-
--- Range: ±5.0V, Bits: 16, Type: signed (input version)
-function voltage_input_5v_bipolar_s16_from_raw(
-    raw : std_logic_vector(15 downto 0)
-) return signed;
-
-function voltage_input_5v_bipolar_s16_to_raw(
-    value : signed(15 downto 0)
-) return std_logic_vector;
-```
-
-**Update BPD-RTL.yaml:**
+**Next Steps - Update BPD-RTL.yaml (Handoff 2):**
 ```yaml
 - name: trig_out_voltage
   datatype: voltage_output_5v_bipolar_s16  # Correct!
@@ -512,9 +512,9 @@ function voltage_input_5v_bipolar_s16_to_raw(
 ```
 
 **Impact:**
-- **CRITICAL** - Current BPD voltage types are semantically wrong
-- ±5V is the most common Moku DAC/ADC range (should be standard type)
-- Fixes voltage type system gap
+- ✅ **CRITICAL FIX** - Corrects BPD voltage type mismatch (was using ±0.5V!)
+- ✅ ±5V is now standard type (most common Moku DAC/ADC range)
+- ✅ Voltage type system gap closed
 
 #### Issue #3: Voltage Type System Design Doc Not Implemented
 
@@ -562,16 +562,14 @@ CR11       - Monitor window duration
 CR12-CR15  - Reserved (future expansion)
 ```
 
-**Known Issues (see refinements above):**
-1. Using `boolean` instead of `std_logic_reg` for 6 control bits
-2. Voltage type mismatch: `voltage_output_05v_s16` (±0.5V) used where ±5V needed
-3. Missing ±5V voltage type in forge_serialization_voltage_pkg.vhd
+**Resolved Issues (2025-11-06):**
+1. ✅ `std_logic_reg` datatype added to forge_serialization_types_pkg.vhd
+2. ✅ ±5V voltage types added to forge_serialization_voltage_pkg.vhd
 
-**Next Steps:**
-1. Add `std_logic_reg` datatype to forge_serialization_types_pkg.vhd
-2. Add ±5V voltage types to forge_serialization_voltage_pkg.vhd
-3. Update BPD-RTL.yaml to use correct types
-4. Regenerate or manually update BPD shim layer
+**Remaining Tasks (Handoff 2):**
+1. Update BPD-RTL.yaml to use `std_logic_reg` instead of `boolean` for 6 control bits
+2. Update BPD-RTL.yaml to use `voltage_*_5v_bipolar_s16` instead of `voltage_*_05v_s16`
+3. Regenerate or manually update BPD shim layer to use new types
 
 ---
 
@@ -648,16 +646,16 @@ All submodules follow this token-efficient structure:
 - Check `libs/forge-vhdl/vhdl/packages/forge_serialization_*_pkg.vhd` - Implementation
 - Check BPD-RTL.yaml - Usage examples
 
-**Known gaps (see refinements section):**
-- Missing `std_logic_reg` (use `boolean` as workaround)
-- Missing ±5V voltage type (use ±20V or ±25V as workaround)
+**Recent additions (2025-11-06):**
+- ✅ `std_logic_reg` type added - Semantic correctness for register bits (not boolean logic)
+- ✅ ±5V voltage types added - `voltage_input_5v_bipolar_s16`, `voltage_output_5v_bipolar_s16`
 
 ### 5. VHDL Component Usage
 
 **Packages available:**
 - `forge_common_pkg` - FORGE control scheme (combine_forge_ready)
-- `forge_serialization_types_pkg` - Boolean conversions
-- `forge_serialization_voltage_pkg` - Voltage register serialization
+- `forge_serialization_types_pkg` - Boolean conversions, register bit type (`std_logic_reg`)
+- `forge_serialization_voltage_pkg` - Voltage register serialization (±0.5V, ±5V, ±20V, ±25V)
 - `forge_serialization_time_pkg` - Time/cycle conversions
 - `forge_voltage_3v3_pkg` - Direct 0-3.3V utilities
 - `forge_voltage_5v0_pkg` - Direct 0-5.0V utilities

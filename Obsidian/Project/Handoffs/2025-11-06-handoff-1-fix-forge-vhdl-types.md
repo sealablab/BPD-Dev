@@ -2,7 +2,8 @@
 created: 2025-11-06
 type: handoff
 priority: P1
-status: pending
+status: completed
+completed: 2025-11-06
 ---
 
 # Handoff 1: Fix forge-vhdl Serialization Types
@@ -187,12 +188,12 @@ ghdl -a --std=08 vhdl/packages/forge_serialization_voltage_pkg.vhd
 
 ## Success Criteria
 
-- [ ] `std_logic_reg_from_raw()` and `_to_raw()` added to forge_serialization_types_pkg.vhd
-- [ ] `voltage_input_5v_bipolar_s16` functions added to forge_serialization_voltage_pkg.vhd
-- [ ] `voltage_output_5v_bipolar_s16` functions added to forge_serialization_voltage_pkg.vhd
-- [ ] Both packages compile cleanly with GHDL
-- [ ] Documentation updated (llms.txt mentions new types)
-- [ ] Ready to proceed to Handoff 2 (BPD-RTL.yaml update)
+- [x] `std_logic_reg_from_raw()` and `_to_raw()` added to forge_serialization_types_pkg.vhd
+- [x] `voltage_input_5v_bipolar_s16` functions added to forge_serialization_voltage_pkg.vhd
+- [x] `voltage_output_5v_bipolar_s16` functions added to forge_serialization_voltage_pkg.vhd
+- [x] Both packages compile cleanly with GHDL
+- [x] Documentation updated (llms.txt, CLAUDE.md updated with new types)
+- [x] Ready to proceed to Handoff 2 (BPD-RTL.yaml update)
 
 ---
 
@@ -212,5 +213,14 @@ ghdl -a --std=08 vhdl/packages/forge_serialization_voltage_pkg.vhd
 ---
 
 **Created:** 2025-11-06 23:15
-**Status:** Pending
+**Completed:** 2025-11-06 23:45
+**Status:** ✅ Completed
 **Priority:** P1 (blocks Handoff 2)
+
+**Commit:** `fd0912d` (forge-vhdl submodule)
+**Files Modified:**
+- `libs/forge-vhdl/vhdl/packages/forge_serialization_types_pkg.vhd`
+- `libs/forge-vhdl/vhdl/packages/forge_serialization_voltage_pkg.vhd`
+- `libs/forge-vhdl/CLAUDE.md`
+- `libs/forge-vhdl/llms.txt`
+- `CLAUDE.md` (root - documentation updates)
