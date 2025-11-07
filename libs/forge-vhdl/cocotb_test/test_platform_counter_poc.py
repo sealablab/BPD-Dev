@@ -105,6 +105,10 @@ class PlatformCounterTests(TestBase):
         # Combine FORGE control bits with counter_max
         cr0_value = ForgeControlBits.FULLY_ENABLED | (TestValues.P1_COUNTER_MAX & 0xFFFF)
         self.dut.Control0.value = cr0_value
+
+        # Wait for ready_for_updates to latch app_reg_counter_max (2 cycles in IDLE)
+        await ClockCycles(self.dut.clk, 2)
+
         await ClockCycles(self.dut.clk, TestValues.P1_WAIT_CYCLES)
 
         # Read counter
@@ -134,6 +138,9 @@ class PlatformCounterTests(TestBase):
         # Combine FORGE control bits with counter_max
         cr0_value = ForgeControlBits.FULLY_ENABLED | (counter_max & 0xFFFF)
         self.dut.Control0.value = cr0_value
+
+        # Wait for ready_for_updates to latch app_reg_counter_max (2 cycles in IDLE)
+        await ClockCycles(self.dut.clk, 2)
 
         # Wait for overflow (counter_max + extra cycles for GHDL)
         await ClockCycles(self.dut.clk, counter_max + 3)
