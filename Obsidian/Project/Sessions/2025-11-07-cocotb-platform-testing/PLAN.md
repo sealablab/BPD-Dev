@@ -25,7 +25,7 @@ Upgrade @libs/forge-vhdl/ cocotb test infrastructure to create a MokuConfig-driv
 - [x] Simulation backend (simulation_backend.py)
 
 ### Remaining
-- [ ] FORGE control validation tests
+- [x] FORGE control validation tests ✅ (test_platform_forge_control.py - 208 lines, 2 test cases)
 - [ ] Simple counter PoC with FORGE scheme
 - [ ] Integration test with deployment YAMLs
 - [ ] Quick-start documentation
@@ -42,6 +42,13 @@ libs/forge-vhdl/cocotb_test/platform/
     ├── oscilloscope.py          # Behavioral oscilloscope
     └── cloud_compile.py         # CloudCompile passthrough
 ```
+
+### Implementation Details
+- **test_platform_forge_control.py**: 2 test cases validating CR0[31:29] sequencing
+  - `test_forge_control_sequence()`: Tests power-on state, enable sequence, network delays
+  - `test_network_cr_primitives()`: Tests concurrent CR updates, network statistics
+- **Network delays**: Successfully implemented 200ms realistic delays
+- **Commit history**: 2 commits (2435389, 8cbf9ff) with 1,590 lines added
 
 ## Phase 2: BPD Deployment Validation (Week 2)
 
@@ -124,7 +131,7 @@ uv run python cocotb_test/run.py platform_bpd_deployment \
 - [x] Network CR API with 200ms delays
 - [x] MokuConfig drives simulator setup
 - [x] Oscilloscope captures signals
-- [ ] FORGE control scheme validated
+- [x] FORGE control scheme validated ✅
 
 ### Phase 2
 - [ ] Both deployment YAMLs work
@@ -140,20 +147,20 @@ uv run python cocotb_test/run.py platform_bpd_deployment \
 Network-settable CR primitives with realistic delays create explicit boundary between "outside world" (Python scripts) and FPGA simulation, matching real MCC behavior.
 
 ## Current Status
-Phase 1 infrastructure complete. Need to:
-1. Create FORGE validation tests
+Phase 1 infrastructure and FORGE validation complete (70%). Need to:
+1. ~~Create FORGE validation tests~~ ✅ DONE
 2. Build simple counter PoC
 3. Test with deployment YAMLs
 4. Document quick-start
 
 ## Next Actions
-1. Create test_platform_forge_control.py
+1. ~~Create test_platform_forge_control.py~~ ✅ DONE (commit 8cbf9ff)
 2. Create forge_counter.vhd test DUT
-3. Validate FORGE control sequencing
-4. Test network CR delays
+3. ~~Validate FORGE control sequencing~~ ✅ DONE
+4. ~~Test network CR delays~~ ✅ DONE (200ms delays verified)
 
 ## Time Estimate
-- Phase 1: 3-4 days (80% complete)
+- Phase 1: 3-4 days (70% complete - FORGE tests done, need counter PoC + docs)
 - Phase 2: 3-4 days
 - Phase 3: 4-5 days
 - **MVP Total:** 1-2 weeks for Phase 1+2
