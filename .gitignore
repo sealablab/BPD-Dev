@@ -85,17 +85,21 @@ tests/e~*.o
 *~
 
 # Obsidian workspace configuration
-# Strategy: Commit shared config, ignore personal workspace state
-.obsidian/workspace.json     # Personal workspace layout (ignore)
-.obsidian/app.json            # Personal app settings (ignore)
-.obsidian/appearance.json     # Personal theme settings (ignore)
+# Strategy: Ignore personal workspace state, commit shared plugin configs
+.obsidian/workspace.json
+.obsidian/app.json
+.obsidian/appearance.json
 
-# But DO commit these shared configs:
-# .obsidian/hotkeys.json          # Shared hotkeys (COMMIT)
-# .obsidian/core-plugins.json     # Shared plugin list (COMMIT)
-# .obsidian/community-plugins.json # Shared community plugins (COMMIT)
-# .obsidian/plugins/*/manifest.json # Plugin manifests (COMMIT)
-# .obsidian/plugins/*/data.json    # Plugin configs (COMMIT)
+# Ignore plugin runtime files
+.obsidian/plugins/*/main.js
+.obsidian/plugins/*/styles.css
+
+# Shared configs are tracked (not ignored):
+# - .obsidian/hotkeys.json
+# - .obsidian/core-plugins.json
+# - .obsidian/community-plugins.json
+# - .obsidian/plugins/*/manifest.json
+# - .obsidian/plugins/*/data.json
 
 # ============================================================================
 # OS Generated
