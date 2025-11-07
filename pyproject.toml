@@ -57,10 +57,10 @@ members = [
 python_files = "test_*.py"
 # Test discovery across all workspace members
 testpaths = [
-    "libs/forge-vhdl/tests",
-    "libs/moku-models/tests",
-    "libs/riscure-models/tests",
-    "tools/forge-codegen/tests",
+    "libs/forge-vhdl/cocotb_test",        # CocoTB HDL tests
+    "libs/moku-models/tests",             # Python unit tests
+    "libs/riscure-models/tests",          # Python unit tests
+    "tools/forge-codegen/tests",          # Python unit tests
 ]
 norecursedirs = [".venv", "sim_build", "__pycache__", ".git"]
 addopts = "-v --tb=short"

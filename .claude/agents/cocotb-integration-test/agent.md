@@ -57,10 +57,11 @@ You are the CocoTB Integration Test specialist. Your primary responsibility is t
 - `libs/forge-vhdl/docs/COCOTB_TROUBLESHOOTING.md` - Problem-solution guide
 
 **Test Infrastructure:**
-- `libs/forge-vhdl/tests/test_base.py` - Base class for all tests
-- `libs/forge-vhdl/tests/conftest.py` - Shared utilities
-- `libs/forge-vhdl/tests/run.py` - Test runner with GHDL filter
-- `libs/forge-vhdl/scripts/ghdl_output_filter.py` - Output filter
+- `libs/forge-vhdl/forge_cocotb/` - Reusable CocoTB infrastructure package
+  - `test_base.py` - Base class for all tests
+  - `conftest.py` - Shared utilities
+  - `ghdl_filter.py` - GHDL output filter
+- Test runners use package imports: `from forge_cocotb import TestBase, setup_clock, ...`
 
 ---
 
@@ -70,9 +71,10 @@ You are the CocoTB Integration Test specialist. Your primary responsibility is t
 
 1. **Test Directory Structure:**
 ```
-tests/
+cocotb_test/
 ├── test_configs.py                           # Test discovery config
 ├── test_<module>_progressive.py              # Progressive orchestrator
+├── run.py                                    # Test runner script
 └── <module>_tests/
     ├── __init__.py
     ├── <module>_constants.py                 # MODULE_NAME, HDL_SOURCES, test values
@@ -216,10 +218,10 @@ from cocotb.triggers import RisingEdge, ClockCycles
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).parent.parent.parent / "forge-vhdl" / "tests"))
+# Import forge_cocotb infrastructure
+sys.path.insert(0, str(Path(__file__).parent.parent.parent.parent / "libs" / "forge-vhdl"))
 
-from conftest import setup_clock, reset_active_low
-from test_base import TestBase, VerbosityLevel
+from forge_cocotb import TestBase, VerbosityLevel, setup_clock, reset_active_low
 from <module>_tests.<module>_constants import *
 
 
@@ -259,11 +261,12 @@ import sys
 import os
 from pathlib import Path
 
-FORGE_VHDL_TESTS = Path(__file__).parent.parent / "forge-vhdl" / "tests"
-sys.path.insert(0, str(FORGE_VHDL_TESTS))
+# Add forge_cocotb to path
+FORGE_VHDL = Path(__file__).parent.parent.parent / "libs" / "forge-vhdl"
+sys.path.insert(0, str(FORGE_VHDL))
 sys.path.insert(0, str(Path(__file__).parent))
 
-from test_base import TestLevel
+from forge_cocotb import TestLevel
 
 
 def get_test_level() -> TestLevel:
@@ -451,8 +454,9 @@ This is a validated example of the agent's work:
 - **Solution:** Create test wrapper, convert to std_logic/signed/unsigned
 
 ### Import Errors
-- **Issue:** Cannot find TestBase or conftest
-- **Solution:** Add `sys.path.insert(0, str(Path(__file__).parent.parent / "forge-vhdl" / "tests"))`
+- **Issue:** Cannot find TestBase or forge_cocotb
+- **Solution:** Add `sys.path.insert(0, str(Path(__file__).parent.parent.parent / "libs" / "forge-vhdl"))`
+- **Better:** Import via package: `from forge_cocotb import TestBase, setup_clock`
 
 ### VHDL Compilation Errors
 - **Issue:** Missing dependencies, wrong file order
@@ -468,28 +472,28 @@ This is a validated example of the agent's work:
 
 ### Run P1 Tests (Default)
 ```bash
-cd libs/<project>/tests
-uv run python ../../forge-vhdl/tests/run.py <module>
+cd examples/<project>/vhdl
+uv run python cocotb_test/run.py <module>
 ```
 
 ### Run P2 Tests
 ```bash
-TEST_LEVEL=P2_INTERMEDIATE uv run python ../../forge-vhdl/tests/run.py <module>
+TEST_LEVEL=P2_INTERMEDIATE uv run python cocotb_test/run.py <module>
 ```
 
 ### Run P3 Tests
 ```bash
-TEST_LEVEL=P3_COMPREHENSIVE uv run python ../../forge-vhdl/tests/run.py <module>
+TEST_LEVEL=P3_COMPREHENSIVE uv run python cocotb_test/run.py <module>
 ```
 
 ### Debug Mode (No Filter)
 ```bash
-GHDL_FILTER_LEVEL=none uv run python ../../forge-vhdl/tests/run.py <module>
+GHDL_FILTER_LEVEL=none uv run python cocotb_test/run.py <module>
 ```
 
 ### List Available Tests
 ```bash
-uv run python ../../forge-vhdl/tests/run.py --list
+uv run python cocotb_test/run.py --list
 ```
 
 ---
@@ -523,8 +527,8 @@ from cocotb.clock import Clock
 clock = Clock(dut.clk, 8, units="ns")
 cocotb.start_soon(clock.start())
 
-# Or use conftest helper
-from conftest import setup_clock
+# Or use forge_cocotb helper
+from forge_cocotb import setup_clock
 await setup_clock(dut, period_ns=8)
 ```
 

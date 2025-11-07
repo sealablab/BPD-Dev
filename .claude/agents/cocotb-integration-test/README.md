@@ -30,7 +30,7 @@ This agent was successfully validated through a real-world test case and promote
 
 ## Validation Test Case
 
-**Project:** `libs/bpd-tiny-vhdl`
+**Project:** `examples/basic-probe-driver`
 **Module:** BPD FSM Observer integration tests
 
 ### Input (Before)
@@ -41,9 +41,10 @@ proposed_cocotb_test/
 
 ### Output (After)
 ```
-tests/
+cocotb_test/
 ├── test_configs.py
 ├── test_bpd_fsm_observer_progressive.py
+├── run.py
 └── bpd_fsm_observer_tests/
     ├── __init__.py
     ├── bpd_fsm_observer_constants.py
@@ -121,11 +122,11 @@ tests/
 To invoke this agent for a new test restructuring task:
 
 ```markdown
-I have CocoTB tests in `path/to/tests/` that need to follow forge-vhdl standards.
+I have CocoTB tests in `path/to/cocotb_test/` that need to follow forge-vhdl standards.
 
 Please read:
 - libs/forge-vhdl/CLAUDE.md (testing standards)
-- path/to/tests/test_my_module.py (existing tests)
+- path/to/cocotb_test/test_my_module.py (existing tests)
 
 Then restructure to forge-vhdl progressive pattern.
 ```
@@ -142,7 +143,7 @@ The agent will:
 
 ## Reference Implementation
 
-**Location:** `libs/bpd-tiny-vhdl/tests/bpd_fsm_observer_tests/`
+**Location:** `examples/basic-probe-driver/vhdl/cocotb_test/bpd_fsm_observer_tests/`
 
 This directory contains the validated output from the agent's dry-run.
 Use it as a reference for expected structure and quality.

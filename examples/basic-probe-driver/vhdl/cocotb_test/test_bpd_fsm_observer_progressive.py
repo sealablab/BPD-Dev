@@ -9,13 +9,13 @@ Test level controlled by TEST_LEVEL environment variable:
 
 Usage:
     # P1 only (minimal output, LLM-optimized)
-    uv run python ../forge-vhdl/tests/run.py bpd_fsm_observer
+    uv run python run.py bpd_fsm_observer
 
     # P2 (standard validation)
-    TEST_LEVEL=P2_INTERMEDIATE uv run python ../forge-vhdl/tests/run.py bpd_fsm_observer
+    TEST_LEVEL=P2_INTERMEDIATE uv run python run.py bpd_fsm_observer
 
     # P3 (comprehensive)
-    TEST_LEVEL=P3_COMPREHENSIVE uv run python ../forge-vhdl/tests/run.py bpd_fsm_observer
+    TEST_LEVEL=P3_COMPREHENSIVE uv run python run.py bpd_fsm_observer
 
 Author: Adapted from proposed_cocotb_test/test_bpd_fsm_observer.py
 Date: 2025-11-05
@@ -26,12 +26,12 @@ import sys
 import os
 from pathlib import Path
 
-# Add test infrastructure to path
-FORGE_VHDL_TESTS = Path(__file__).parent.parent.parent / "libs" / "forge-vhdl" / "tests"
-sys.path.insert(0, str(FORGE_VHDL_TESTS))
+# Add forge_cocotb package to path
+FORGE_VHDL = Path(__file__).parent.parent.parent.parent / "libs" / "forge-vhdl"
+sys.path.insert(0, str(FORGE_VHDL))
 sys.path.insert(0, str(Path(__file__).parent))
 
-from test_base import TestBase, TestLevel
+from forge_cocotb import TestBase, TestLevel
 
 
 # Determine which test level to run

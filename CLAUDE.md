@@ -693,10 +693,10 @@ BPD uses **progressive test levels** (P1 → P2 → P3 → P4) for token-efficie
 - Boundary values, corner cases
 - Production readiness validation
 
-**Location:** `examples/basic-probe-driver/vhdl/tests/`
+**Location:** `examples/basic-probe-driver/vhdl/cocotb_test/`
 
 **Documentation:**
-- `examples/basic-probe-driver/vhdl/tests/README.md` - Complete testing guide
+- `examples/basic-probe-driver/vhdl/cocotb_test/README.md` - Complete testing guide
 - `libs/forge-vhdl/CLAUDE.md` - CocoTB progressive testing standard
 
 ---
@@ -755,7 +755,7 @@ BPD uses **progressive test levels** (P1 → P2 → P3 → P4) for token-efficie
 
 ### BPD Reference Implementation
 - **examples/basic-probe-driver/vhdl/FORGE_ARCHITECTURE.md** - Complete 3-layer architecture spec
-- **examples/basic-probe-driver/vhdl/tests/README.md** - CocoTB testing guide
+- **examples/basic-probe-driver/vhdl/cocotb_test/README.md** - CocoTB testing guide
 - **examples/basic-probe-driver/BPD-RTL.yaml** - Authoritative register specification
 - **examples/basic-probe-driver/VHDL_SERIALIZATION_MIGRATION.md** - Package migration notes
 
