@@ -98,11 +98,21 @@ entity BPD_forge_main is
 
         ------------------------------------------------------------------------
         -- Physical I/O (DAC outputs)
+        -- NEW: APP Layer 3 receives ONLY 3 outputs (OutputA/B/C)
+        -- OutputD is RESERVED for FORGE infrastructure (driven by SHIM)
         ------------------------------------------------------------------------
         OutputA : out signed(15 downto 0);  -- Trigger output DAC
         OutputB : out signed(15 downto 0);  -- Intensity output DAC
         OutputC : out signed(15 downto 0);  -- Reserved
-        OutputD : out signed(15 downto 0)   -- Reserved
+        -- OutputD removed (driven by SHIM hierarchical encoder)
+
+        ------------------------------------------------------------------------
+        -- Hierarchical Voltage Encoding (OutputD Debugging Channel)
+        -- MANDATORY: APP exports state/status for SHIM encoder
+        -- These signals are encoded into OutputD by the SHIM layer
+        ------------------------------------------------------------------------
+        app_state_vector  : out std_logic_vector(5 downto 0);  -- 6-bit FSM state (linear 0-31)
+        app_status_vector : out std_logic_vector(7 downto 0)   -- 8-bit app status (bit 7 = fault)
     );
 end entity BPD_forge_main;
 
@@ -451,6 +461,31 @@ begin
     OutputA <= bpd_trig_out_voltage when trig_out_active = '1' else (others => '0');
     OutputB <= bpd_intensity_voltage when intensity_active = '1' else (others => '0');
     OutputC <= (others => '0');  -- Reserved for future use
-    OutputD <= (others => '0');  -- Reserved for future use
+    -- OutputD removed (driven by SHIM hierarchical encoder)
+
+    ------------------------------------------------------------------------
+    -- Hierarchical Voltage Encoding Exports
+    --
+    -- NEW: Export state/status vectors for SHIM layer encoder
+    --
+    -- APP Layer 3 is responsible for:
+    --   1. Exporting current FSM state (6-bit, linear encoding 0-31)
+    --   2. Exporting app-specific status (8-bit)
+    --      - status[7] = fault flag (MANDATORY)
+    --      - status[6:0] = app-specific (RECOMMENDED: copy state for redundancy)
+    --
+    -- SHIM Layer 2 will encode these into OutputD using hierarchical voltage
+    -- encoding (200 digital units per state + fine-grained status offset)
+    ------------------------------------------------------------------------
+
+    -- Export FSM state directly (linear encoding 0-3 for normal, 63 for fault)
+    app_state_vector <= state;
+
+    -- Export app status vector (fault flag + state redundancy)
+    -- status[7] = fault indicator (1 if in FAULT state)
+    -- status[6:1] = copy of state[5:0] for redundancy
+    -- status[0] = unused (future expansion)
+    app_status_vector <= '1' & state(5 downto 0) & '0' when state = STATE_FAULT else
+                         '0' & state(5 downto 0) & '0';
 
 end architecture rtl;

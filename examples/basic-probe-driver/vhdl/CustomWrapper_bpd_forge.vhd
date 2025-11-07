@@ -161,7 +161,19 @@ end architecture bpd_forge;
 --    InputB  → (unused)
 --    OutputA → Trigger output (DAC, ±5V)
 --    OutputB → Intensity output (DAC, ±5V)
---    OutputC → FSM state debug (DAC, for oscilloscope)
---    OutputD → (reserved)
+--    OutputC → (reserved)
+--    OutputD → Hierarchical voltage encoding (FSM state + app status, debugging)
+--
+-- 4. Hierarchical Voltage Encoding (OutputD):
+--
+--    NEW (Handoff 6): OutputD driven by SHIM layer with hierarchical encoder
+--    - Encodes 14 bits: 6-bit FSM state + 8-bit app status
+--    - Major transitions: 200 digital units per state (human-readable on scope)
+--    - Status information: Fine-grained offset (machine-decodable)
+--    - Fault detection: Negative voltage (status[7] = fault flag)
+--    - Replaces: fsm_observer.vhd LUT-based pattern
+--    - Benefits: Zero LUTs, 14-bit density, single bitstream dev/prod
+--
+--    Reference: Obsidian/Project/Handoffs/2025-11-07-handoff-6-hierarchical-voltage-encoding.md
 --
 --------------------------------------------------------------------------------

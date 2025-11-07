@@ -188,6 +188,25 @@ architecture forge_app of AppName_CustomInstrument is
     -- signal app_status_state         : std_logic_vector(5 downto 0);
     -- signal app_status_error_flags   : std_logic_vector(7 downto 0);
 
+    ----------------------------------------------------------------------------
+    -- Hierarchical Voltage Encoding (OutputD Debugging Channel)
+    --
+    -- NEW: FORGE-mandated state/status exports from Layer 3 (APP)
+    -- These signals are encoded by Layer 2 (SHIM) into OutputD voltage
+    --
+    -- MANDATORY for all FORGE applications:
+    --   - app_state_vector[5:0]  : 6-bit FSM state (linear encoding 0-31)
+    --   - app_status_vector[7:0] : 8-bit app status (bit 7 = fault flag)
+    --
+    -- Layer 2 (SHIM) instantiates forge_hierarchical_encoder to encode these
+    -- into OutputD as hierarchical voltage (200 digital units per state +
+    -- fine-grained status offset)
+    --
+    -- Reference: Handoff 6 - Hierarchical Voltage Encoding
+    ----------------------------------------------------------------------------
+    signal app_state_vector  : std_logic_vector(5 downto 0);  -- From Layer 3 APP
+    signal app_status_vector : std_logic_vector(7 downto 0);  -- From Layer 3 APP
+
 begin
 
     ----------------------------------------------------------------------------
@@ -231,7 +250,8 @@ begin
     --   1. Unpack Control Registers → app_reg_* signals (typed)
     --   2. Pack app_status_* signals → Status Registers
     --   3. Synchronize register updates with ready_for_updates handshaking
-    --   4. Compute global_enable (FORGE control scheme)
+    --   4. Instantiate forge_hierarchical_encoder for OutputD debugging
+    --   5. Wire app_state_vector + app_status_vector to encoder
     --
     -- TRANSPARENCY:
     --   Main app (Layer 3) has NO knowledge of Control Registers
@@ -240,6 +260,11 @@ begin
     -- SYNCHRONIZATION:
     --   Shim latches new app_reg_* values ONLY when ready_for_updates='1'
     --   Protects main app FSM from mid-cycle register changes
+    --
+    -- NEW (Hierarchical Voltage Encoding):
+    --   Shim instantiates forge_hierarchical_encoder
+    --   Receives app_state_vector + app_status_vector from Layer 3 (APP)
+    --   Drives OutputD with encoded voltage (replaces fsm_observer pattern)
     --
     -- Replace <AppName>_forge_shim with your shim entity name
     ----------------------------------------------------------------------------
@@ -306,6 +331,11 @@ begin
             -- app_reg_threshold       => app_reg_threshold,
             -- app_status_busy         => app_status_busy,
             -- app_status_state        => app_status_state
+
+            -- Hierarchical Voltage Encoding (OutputD)
+            -- MANDATORY: Wire state/status vectors from Layer 3 APP
+            -- app_state_vector  => app_state_vector,   -- 6-bit FSM state
+            -- app_status_vector => app_status_vector   -- 8-bit app status
         );
 
     ----------------------------------------------------------------------------
@@ -316,6 +346,7 @@ begin
     --   2. Generate outputs based on app_reg_* inputs
     --   3. Report status via app_status_* outputs
     --   4. Signal ready_for_updates when safe to latch new registers
+    --   5. MANDATORY: Export app_state_vector (6-bit) + app_status_vector (8-bit)
     --
     -- ISOLATION:
     --   Main app is COMPLETELY Control Register agnostic
@@ -326,6 +357,11 @@ begin
     -- PORTABILITY:
     --   Can be reused across platforms (Moku, Red Pitaya, etc.)
     --   Only requires: Clk, Reset, global_enable, app_reg_* signals
+    --
+    -- NEW (Hierarchical Voltage Encoding):
+    --   APP Layer 3 receives ONLY 3 outputs (OutputA/B/C)
+    --   OutputD is RESERVED for FORGE infrastructure (driven by SHIM)
+    --   APP must export app_state_vector + app_status_vector
     --
     -- Replace <AppName>_forge_main with your main entity name
     ----------------------------------------------------------------------------
@@ -344,19 +380,17 @@ begin
             -- Update Handshaking (Main → Shim)
             ready_for_updates => ready_for_updates,
 
-            -- ADC Inputs (if needed by application)
-            -- OPTIONAL: Remove if not used
+            -- ADC Inputs (3 inputs for APP - InputD reserved for BRAM loader)
             InputA => InputA,
             InputB => InputB,
             InputC => InputC,
-            InputD => InputD,
+            -- InputD NOT passed to APP (reserved for BRAM loader feedback, future)
 
-            -- DAC Outputs (if needed by application)
-            -- OPTIONAL: Remove if not used
+            -- DAC Outputs (3 outputs for APP - OutputD reserved for FORGE)
             OutputA => OutputA,
             OutputB => OutputB,
             OutputC => OutputC,
-            OutputD => OutputD
+            -- OutputD NOT passed to APP (driven by SHIM hierarchical encoder)
 
             -- Application Register Interface (Main ↔ Shim)
             -- REPLACE WITH YOUR APPLICATION REGISTERS
@@ -368,6 +402,11 @@ begin
             -- app_reg_threshold       => app_reg_threshold,
             -- app_status_busy         => app_status_busy,
             -- app_status_state        => app_status_state
+
+            -- Hierarchical Voltage Encoding (OutputD)
+            -- MANDATORY: APP exports state/status for SHIM encoder
+            -- app_state_vector  => app_state_vector,   -- 6-bit FSM state (linear 0-31)
+            -- app_status_vector => app_status_vector   -- 8-bit app status (bit 7 = fault)
         );
 
 end architecture forge_app;

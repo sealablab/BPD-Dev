@@ -97,11 +97,21 @@ entity MCC_CustomInstrument is
         --   Moku:Go  - Typically ±5V
         --   Moku:Lab - Typically ±10V
         --   Moku:Pro - Typically ±10V
+        --
+        -- FORGE CONVENTION (Hierarchical Voltage Encoding):
+        --   OutputA-C: Available for application use (3 user outputs)
+        --   OutputD:   RESERVED for FORGE infrastructure (debugging channel)
+        --
+        --   OutputD is driven by SHIM layer (Layer 2) with hierarchical voltage
+        --   encoding of FSM state + app status. APP layer (Layer 3) receives
+        --   only 3 outputs (OutputA/B/C) and must export state/status vectors.
+        --
+        --   See: Handoff 6 - Hierarchical Voltage Encoding
         ------------------------------------------------------------------------
         OutputA : out signed(15 downto 0);
         OutputB : out signed(15 downto 0);
         OutputC : out signed(15 downto 0);
-        OutputD : out signed(15 downto 0);
+        OutputD : out signed(15 downto 0);  -- RESERVED for FORGE (debugging channel)
 
         ------------------------------------------------------------------------
         -- Control Registers (16 registers, network settable)

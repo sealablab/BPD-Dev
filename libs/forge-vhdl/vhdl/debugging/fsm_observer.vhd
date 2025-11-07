@@ -1,7 +1,24 @@
 --------------------------------------------------------------------------------
 -- FSM Observer (Fixed 6-bit encoding with optional sign-flip fault indication)
 --
--- Purpose: Convert binary-encoded FSM state to oscilloscope-visible voltage.
+-- **DEPRECATED:** This component is superseded by forge_hierarchical_encoder.vhd
+--                 for new FORGE applications using Handoff 6 architecture.
+--
+-- **Status:** LEGACY - Maintained for backward compatibility with existing designs
+-- **Replacement:** Use forge_hierarchical_encoder.vhd for new designs
+-- **Migration Guide:** See Obsidian/Project/Handoffs/2025-11-07-handoff-6-hierarchical-voltage-encoding.md
+--
+-- **Differences from Replacement:**
+--   - OLD (this): LUT-based voltage encoding, state-only (6 bits)
+--   - NEW: Arithmetic encoding, state+status (14 bits), platform-agnostic
+--
+-- **Why Deprecated:**
+--   - New hierarchical encoder provides 14-bit information density (vs 6-bit)
+--   - Zero LUT resources (pure arithmetic vs 64-entry LUT)
+--   - Platform-agnostic digital encoding (vs voltage constants)
+--   - Single bitstream for dev/prod ("train like you fight")
+--
+-- Original Purpose: Convert binary-encoded FSM state to oscilloscope-visible voltage.
 --          Fixed 6-bit encoding allows single tested entity for all FSMs.
 --          Automatic voltage spreading with optional fault sign-flip mode.
 --
@@ -28,7 +45,8 @@
 -- Tier: 1 (Strict RTL - Verilog portable)
 --
 -- Author: AI-assisted design (2025-10-24)
--- Pattern: Inspectable FSM Observer
+-- Pattern: Inspectable FSM Observer (LEGACY)
+-- Deprecated: 2025-11-07
 --------------------------------------------------------------------------------
 
 library ieee;

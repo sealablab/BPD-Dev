@@ -134,6 +134,13 @@ architecture rtl of BPD_forge_shim is
     ----------------------------------------------------------------------------
     signal ready_for_updates : std_logic;
 
+    ----------------------------------------------------------------------------
+    -- Hierarchical Voltage Encoding Signals
+    -- NEW: State/status vectors from APP for OutputD encoding
+    ----------------------------------------------------------------------------
+    signal app_state_vector  : std_logic_vector(5 downto 0);  -- FSM state from APP
+    signal app_status_vector : std_logic_vector(7 downto 0);  -- App status from APP
+
 begin
 
     ----------------------------------------------------------------------------
@@ -257,11 +264,35 @@ begin
             bpd_monitor_window_start      => app_reg_monitor_window_start,
             bpd_monitor_window_duration   => app_reg_monitor_window_duration,
 
-            -- Physical I/O
+            -- Physical I/O (3 outputs for APP, OutputD driven by SHIM)
             OutputA => OutputA,
             OutputB => OutputB,
             OutputC => OutputC,
-            OutputD => OutputD
+            -- OutputD removed (driven by hierarchical encoder below)
+
+            -- Hierarchical Voltage Encoding (state/status exports)
+            app_state_vector  => app_state_vector,   -- 6-bit FSM state
+            app_status_vector => app_status_vector   -- 8-bit app status
+        );
+
+    ----------------------------------------------------------------------------
+    -- Hierarchical Voltage Encoder for OutputD
+    --
+    -- NEW: Replaces fsm_observer pattern
+    -- Encodes app_state_vector (6-bit) + app_status_vector (8-bit) into OutputD
+    -- using arithmetic encoding (200 digital units per state + fine offset)
+    ----------------------------------------------------------------------------
+    HIERARCHICAL_ENCODER: entity WORK.forge_hierarchical_encoder
+        generic map (
+            DIGITAL_UNITS_PER_STATE  => 200,      -- 200 digital units per state step
+            DIGITAL_UNITS_PER_STATUS => 0.78125   -- ~100 digital units / 128 (status range)
+        )
+        port map (
+            clk           => Clk,
+            reset         => Reset,
+            state_vector  => app_state_vector,   -- From APP (6-bit)
+            status_vector => app_status_vector,  -- From APP (8-bit)
+            voltage_out   => OutputD             -- To MCC DAC (16-bit signed)
         );
 
 end architecture rtl;
