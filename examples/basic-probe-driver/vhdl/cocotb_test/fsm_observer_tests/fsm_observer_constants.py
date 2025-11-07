@@ -84,6 +84,45 @@ class TestValues:
     P3_WAIT_CYCLES = 150        # Max cycles to wait for state transition
 
 
+# ============================================================================
+# IMPORTANT: Migration to forge_hierarchical_encoder (2025-11-07)
+# ============================================================================
+# The project has unified on forge_hierarchical_encoder as THE standard
+# for FSM observation. The old voltage spreading approach is DEPRECATED.
+#
+# OLD: fsm_observer with voltage spreading (0V → 2.5V)
+# NEW: forge_hierarchical_encoder with digital encoding (200 units/state)
+#
+# Tests have been updated to expect the new encoding.
+# ============================================================================
+
+# Import the unified decoder
+import sys
+from pathlib import Path
+# Add tools/decoder to path for hierarchical_decoder
+tools_decoder = Path(__file__).parent.parent.parent.parent.parent.parent / "tools" / "decoder"
+if tools_decoder.exists():
+    sys.path.insert(0, str(tools_decoder))
+    from hierarchical_decoder import decode_hierarchical_voltage, decode_oscilloscope_voltage
+else:
+    # Fallback implementation if import fails
+    def decode_hierarchical_voltage(digital_value: int, platform_range_mv: float = 5000.0):
+        """Fallback decoder implementation"""
+        fault = digital_value < 0
+        magnitude = abs(digital_value)
+        base_state = magnitude // 200
+        remainder = magnitude % 200
+        status_lower = min(127, (remainder * 128 + 50) // 100) if remainder > 0 else 0
+        status = 0x80 | status_lower if fault else status_lower
+        voltage_mv = (digital_value / 32768.0) * platform_range_mv
+        return {
+            'state': base_state,
+            'status': status,
+            'fault': fault,
+            'voltage_mv': voltage_mv
+        }
+
+
 # Voltage conversion utilities
 def voltage_to_digital(voltage: float) -> int:
     """Convert voltage to Moku 16-bit signed digital (±5V scale)"""
@@ -100,24 +139,62 @@ def digital_to_voltage(digital: int) -> float:
 
 
 def calculate_expected_voltage(state_index: int,
-                               num_normal_states: int = NUM_STATES,
-                               v_min: float = V_MIN,
-                               v_max: float = V_MAX) -> float:
-    """Calculate expected voltage for a state (automatic spreading)
+                               status: int = 0x00,
+                               platform_range_v: float = 5.0) -> float:
+    """Calculate expected voltage using forge_hierarchical_encoder approach.
+
+    THIS REPLACES THE OLD VOLTAGE SPREADING CALCULATION!
 
     Args:
         state_index: State index (0-based)
-        num_normal_states: Number of normal (non-fault) states
-        v_min: Minimum voltage
-        v_max: Maximum voltage
+        status: Status byte (default 0x00)
+        platform_range_v: Platform voltage range in volts (default ±5V)
 
     Returns:
-        Expected voltage for the state
+        Expected voltage in volts
 
-    Note: Must match VHDL fsm_observer.vhd logic!
-    Formula: v_min + (state_index * v_step)
-    where v_step = (v_max - v_min) / (num_normal_states - 1)
+    Algorithm (matches forge_hierarchical_encoder.vhd):
+        1. Base digital value = state * 200
+        2. Status offset = (status[6:0] * 100) / 128
+        3. Total = base + offset
+        4. Apply fault flag sign flip if status[7] = 1
+        5. Convert to voltage based on platform range
     """
+    # Calculate digital value using hierarchical encoding
+    base_digital = state_index * 200
+    status_lower = status & 0x7F
+    status_offset = (status_lower * 100) // 128  # Integer division
+    total_digital = base_digital + status_offset
+
+    # Apply fault flag (sign flip)
+    if status & 0x80:
+        total_digital = -total_digital
+
+    # Convert to voltage (platform-specific)
+    # ±5V maps to ±32768 digital units
+    voltage = (total_digital / 32768.0) * platform_range_v
+    return voltage
+
+
+# Legacy function for reference (DEPRECATED)
+def calculate_legacy_voltage_spreading(state_index: int,
+                                      num_normal_states: int = NUM_STATES,
+                                      v_min: float = V_MIN,
+                                      v_max: float = V_MAX) -> float:
+    """DEPRECATED: Old voltage spreading calculation.
+
+    This is the OLD approach that is being replaced.
+    Kept only for documentation of what changed.
+
+    DO NOT USE IN NEW TESTS!
+    """
+    import warnings
+    warnings.warn(
+        "calculate_legacy_voltage_spreading is DEPRECATED. "
+        "Use calculate_expected_voltage() with hierarchical encoding.",
+        DeprecationWarning,
+        stacklevel=2
+    )
     if num_normal_states > 1:
         v_step = (v_max - v_min) / (num_normal_states - 1)
     else:

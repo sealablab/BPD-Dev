@@ -1,73 +1,49 @@
 --------------------------------------------------------------------------------
--- FSM Observer (Fixed 6-bit encoding with optional sign-flip fault indication)
+-- FSM Observer - Compatibility Wrapper for forge_hierarchical_encoder
 --
--- **DEPRECATED:** This component is superseded by forge_hierarchical_encoder.vhd
---                 for new FORGE applications using Handoff 6 architecture.
+-- **DEPRECATED:** This is now a thin compatibility wrapper around forge_hierarchical_encoder
+--                 to provide backward compatibility for existing designs.
 --
--- **Status:** LEGACY - Maintained for backward compatibility with existing designs
--- **Replacement:** Use forge_hierarchical_encoder.vhd for new designs
--- **Migration Guide:** See Obsidian/Project/Handoffs/2025-11-07-handoff-6-hierarchical-voltage-encoding.md
+-- **IMPORTANT CHANGES (2025-11-07):**
+--   - OLD IMPLEMENTATION: LUT-based voltage spreading (0V → 2.5V)
+--   - NEW IMPLEMENTATION: Uses forge_hierarchical_encoder internally
+--   - OUTPUT SCALING CHANGED: Now uses 200 digital units per state
 --
--- **Differences from Replacement:**
---   - OLD (this): LUT-based voltage encoding, state-only (6 bits)
---   - NEW: Arithmetic encoding, state+status (14 bits), platform-agnostic
+-- **Migration Notice:**
+--   All new designs should use forge_hierarchical_encoder directly.
+--   This wrapper exists ONLY for backward compatibility.
 --
--- **Why Deprecated:**
---   - New hierarchical encoder provides 14-bit information density (vs 6-bit)
---   - Zero LUT resources (pure arithmetic vs 64-entry LUT)
---   - Platform-agnostic digital encoding (vs voltage constants)
---   - Single bitstream for dev/prod ("train like you fight")
+-- **Output Differences:**
+--   Legacy (LUT-based): State 0→0V, 1→0.625V, 2→1.25V, 3→1.875V
+--   Current (hierarchical): State 0→0mV, 1→30mV, 2→61mV, 3→91mV (on ±5V platform)
 --
--- Original Purpose: Convert binary-encoded FSM state to oscilloscope-visible voltage.
---          Fixed 6-bit encoding allows single tested entity for all FSMs.
---          Automatic voltage spreading with optional fault sign-flip mode.
+-- **Why This Change:**
+--   - Unifying all FSM observation to use forge_hierarchical_encoder
+--   - Zero LUT usage (pure arithmetic)
+--   - Support for status encoding (8 additional bits)
+--   - Platform-agnostic digital encoding
 --
--- Two modes:
---   1. NO FAULTS: All states use positive voltage stairstep (V_MIN → V_MAX)
---   2. SIGN-FLIP FAULTS: Fault states flip sign of previous voltage
+-- **For Documentation on New Approach:**
+--   See: libs/forge-vhdl/vhdl/debugging/forge_hierarchical_encoder.vhd
+--   Migration Guide: Obsidian/Project/Architecture/FSM_OBSERVER_UNIFICATION_STRATEGY.md
 --
--- Sign-flip behavior: When FSM enters fault state (>= FAULT_STATE_THRESHOLD),
--- output voltage becomes NEGATIVE magnitude of the previous normal state.
---   Example: S1(0.5V) → S2(1.0V) → S3(1.5V) → FAULT → output = -1.5V
---   Magnitude preserves "where did it fault from" for debugging.
---
--- Integration:
---   - FSM uses fixed 6-bit state vector (std_logic_vector(5 downto 0))
---   - Observer watches state signal (non-invasive, parallel connection)
---   - Output connects to dedicated debug channel (e.g., OutputB)
---
--- Voltage encoding strategy:
---   - Positive voltages (stairstep up) = Normal state progression
---   - Negative voltages (sign-flip) = Fault states with historical context
---   - Zero voltage (0.0V) = Typical IDLE/ground reference
---
--- Uses: Moku_Voltage_pkg for all voltage conversions
--- Tier: 1 (Strict RTL - Verilog portable)
---
--- Author: AI-assisted design (2025-10-24)
--- Pattern: Inspectable FSM Observer (LEGACY)
--- Deprecated: 2025-11-07
+-- Author: Refactored to wrapper (2025-11-07)
+-- Status: DEPRECATED - Use forge_hierarchical_encoder directly
 --------------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use work.forge_voltage_5v_bipolar_pkg.all;
 
 entity fsm_observer is
     generic (
-        -- Number of total states (normal + fault)
+        -- Legacy generics - IGNORED but kept for backward compatibility
         NUM_STATES : positive := 8;
+        V_MIN : real := 0.0;
+        V_MAX : real := 2.5;
+        FAULT_STATE_THRESHOLD : natural := 8;
 
-        -- Voltage range for normal states
-        V_MIN : real := 0.0;    -- First state voltage
-        V_MAX : real := 2.5;    -- Last normal state voltage
-
-        -- Fault configuration (set to NUM_STATES to disable faults)
-        FAULT_STATE_THRESHOLD : natural := 8;  -- States >= this are faults
-
-        -- State names for documentation/debugging (optional)
-        -- Used by Python generator for trigger tables and decoders
+        -- State name generics also ignored
         STATE_0_NAME : string := "STATE_0";
         STATE_1_NAME : string := "STATE_1";
         STATE_2_NAME : string := "STATE_2";
@@ -76,120 +52,97 @@ entity fsm_observer is
         STATE_5_NAME : string := "STATE_5";
         STATE_6_NAME : string := "STATE_6";
         STATE_7_NAME : string := "STATE_7"
-        -- Can extend up to STATE_63_NAME if needed for larger FSMs
     );
     port (
-        -- Clock/reset (only used if FAULT_STATE_THRESHOLD < NUM_STATES)
+        -- Clock/reset
         clk          : in  std_logic := '0';
         reset        : in  std_logic := '0';  -- Active-low reset
 
-        -- FSM state input (ALWAYS 6 bits, fixed width)
+        -- FSM state input (6 bits)
         state_vector : in  std_logic_vector(5 downto 0);
 
-        -- Oscilloscope output (16-bit signed, Moku ±5V scale)
+        -- Oscilloscope output (16-bit signed)
         voltage_out  : out signed(15 downto 0)
     );
 end entity fsm_observer;
 
-architecture rtl of fsm_observer is
+architecture wrapper of fsm_observer is
 
     -- ========================================================================
-    -- Voltage Lookup Table (LUT)
+    -- Wrapper Architecture - Uses forge_hierarchical_encoder internally
     -- ========================================================================
-    -- 64-entry LUT calculated at elaboration time (zero runtime overhead)
-    type voltage_lut_t is array (0 to 63) of signed(15 downto 0);
+    -- This wrapper provides backward compatibility for existing designs
+    -- while transitioning to the unified hierarchical encoder approach.
 
-    -- Calculate voltage LUT for normal states
-    -- Linear interpolation between V_MIN and V_MAX
-    function calculate_voltage_lut return voltage_lut_t is
-        variable lut : voltage_lut_t;
-        variable v_step : real;
-        variable voltage : real;
-        variable num_normal : natural;
-    begin
-        -- Determine number of normal (non-fault) states
-        if FAULT_STATE_THRESHOLD < NUM_STATES then
-            num_normal := FAULT_STATE_THRESHOLD;
-        else
-            num_normal := NUM_STATES;  -- No fault states
-        end if;
-
-        -- Calculate voltage step between normal states
-        if num_normal > 1 then
-            v_step := (V_MAX - V_MIN) / real(num_normal - 1);
-        else
-            v_step := 0.0;
-        end if;
-
-        -- Populate LUT for normal states (linear interpolation)
-        for i in 0 to num_normal-1 loop
-            voltage := V_MIN + (real(i) * v_step);
-            lut(i) := to_digital(voltage);
-        end loop;
-
-        -- Unused states → failsafe (0.0V)
-        for i in num_normal to 63 loop
-            lut(i) := DIGITAL_ZERO;
-        end loop;
-
-        return lut;
-    end function;
-
-    -- Constant LUT (calculated once at elaboration, zero runtime overhead)
-    constant VOLTAGE_LUT : voltage_lut_t := calculate_voltage_lut;
-
-    -- ========================================================================
-    -- Internal Signals
-    -- ========================================================================
-    signal state_index     : natural range 0 to 63;
-    signal is_fault_state  : boolean;
-    signal current_voltage : signed(15 downto 0);
-    signal prev_voltage    : signed(15 downto 0);
+    -- Internal signals
+    signal status_vector : std_logic_vector(7 downto 0);
+    signal state_index   : natural range 0 to 63;
+    signal is_fault      : boolean;
+    signal reset_active_high : std_logic;
 
 begin
 
     -- ========================================================================
-    -- State Vector Decoding
+    -- Deprecation Warning (synthesis-time only)
     -- ========================================================================
-    -- Convert state vector to integer index
+    assert false report
+        "WARNING: fsm_observer is DEPRECATED (2025-11-07). " &
+        "This is now a wrapper around forge_hierarchical_encoder. " &
+        "Output scaling has changed from legacy voltage spreading. " &
+        "Use forge_hierarchical_encoder directly for new designs. " &
+        "See: Obsidian/Project/Architecture/FSM_OBSERVER_UNIFICATION_STRATEGY.md"
+        severity warning;
+
+    -- ========================================================================
+    -- Fault Detection Logic
+    -- ========================================================================
+    -- Convert state to index for fault detection
     state_index <= to_integer(unsigned(state_vector));
+    is_fault <= (state_index >= FAULT_STATE_THRESHOLD) and (FAULT_STATE_THRESHOLD < NUM_STATES);
 
-    -- Detect fault state
-    is_fault_state <= (state_index >= FAULT_STATE_THRESHOLD);
+    -- Build status vector
+    -- For backward compatibility, we simulate fault detection:
+    -- - Status[7] = fault flag (sign flip control)
+    -- - Status[6:1] = state copy (for redundancy)
+    -- - Status[0] = 0
+    status_vector <= '1' & state_vector & '0' when is_fault else
+                     '0' & state_vector & '0';
 
-    -- Lookup current voltage from LUT
-    current_voltage <= VOLTAGE_LUT(state_index);
-
-    -- ========================================================================
-    -- Sign-Flip Fault Mode (if fault states exist)
-    -- ========================================================================
-    gen_with_faults: if FAULT_STATE_THRESHOLD < NUM_STATES generate
-        -- Track previous non-fault voltage
-        process(clk, reset)
-        begin
-            if reset = '0' then
-                prev_voltage <= DIGITAL_ZERO;
-            elsif rising_edge(clk) then
-                -- Update previous voltage only when in normal (non-fault) state
-                if not is_fault_state then
-                    prev_voltage <= current_voltage;
-                end if;
-            end if;
-        end process;
-
-        -- Output: Sign-flip when in fault state
-        -- This preserves the magnitude of the voltage from the last normal state,
-        -- but negates it to indicate fault condition.
-        voltage_out <= -prev_voltage when is_fault_state
-                       else current_voltage;
-    end generate;
+    -- Convert active-low reset to active-high for hierarchical encoder
+    reset_active_high <= not reset;
 
     -- ========================================================================
-    -- No Faults Mode (all states use normal voltage)
+    -- Instantiate forge_hierarchical_encoder (the new standard)
     -- ========================================================================
-    gen_no_faults: if FAULT_STATE_THRESHOLD >= NUM_STATES generate
-        -- Purely combinational (no clock needed)
-        voltage_out <= current_voltage;
-    end generate;
+    hierarchical_encoder : entity work.forge_hierarchical_encoder
+        port map (
+            clk           => clk,
+            reset         => reset_active_high,  -- Encoder expects active-high
+            state_vector  => state_vector,
+            status_vector => status_vector,
+            voltage_out   => voltage_out
+        );
 
-end architecture rtl;
+    -- ========================================================================
+    -- Output Notes:
+    -- ========================================================================
+    -- The output scaling is DIFFERENT from the legacy fsm_observer:
+    --
+    -- LEGACY (LUT-based voltage spreading):
+    --   State 0: 0.0V
+    --   State 1: 0.625V  (with V_MAX=2.5V, NUM_STATES=5)
+    --   State 2: 1.25V
+    --   State 3: 1.875V
+    --   State 4: 2.5V
+    --
+    -- NEW (hierarchical encoder, 200 units/state):
+    --   State 0: 0 mV     (0 digital units)
+    --   State 1: 30.5 mV  (200 digital units on ±5V platform)
+    --   State 2: 61 mV    (400 digital units)
+    --   State 3: 91.5 mV  (600 digital units)
+    --   State 4: 122 mV   (800 digital units)
+    --
+    -- Tests that expect the old voltage spreading WILL FAIL!
+    -- Update your test expectations or use forge_hierarchical_encoder directly.
+
+end architecture wrapper;

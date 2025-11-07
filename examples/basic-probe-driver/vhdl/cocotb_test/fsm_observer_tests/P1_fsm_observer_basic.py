@@ -4,16 +4,19 @@ P1 - Basic Tests for BPD FSM Observer
 Minimal, fast tests with reduced verbosity for LLM-friendly output.
 These tests verify core FSM observer functionality with small values and minimal logging.
 
+UPDATED 2025-11-07: Now uses forge_hierarchical_encoder (200 units/state)
+Previous voltage spreading (0-2.5V) replaced with hierarchical encoding.
+
 Test Coverage:
-1. Reset behavior (IDLE voltage = 0.0V)
-2. IDLE → ARMED transition (voltage increase)
-3. Normal state progression (voltage stairstep)
+1. Reset behavior (IDLE voltage = 0mV)
+2. IDLE → ARMED transition (0mV → 30mV)
+3. Normal state progression (voltage stairstep: 0, 30, 61, 91mV)
 
 Expected Output: <20 lines (with GHDL aggressive filter)
 Expected Runtime: <5 seconds
 
 Author: Adapted from proposed_cocotb_test/test_bpd_fsm_observer.py
-Date: 2025-11-05
+Date: 2025-11-05 (Updated 2025-11-07 for hierarchical encoder)
 """
 
 import cocotb
@@ -57,7 +60,7 @@ class BpdFsmObserverBasicTests(TestBase):
         await self.test("State voltage stairstep", self.test_state_progression)
 
     async def test_reset_behavior(self):
-        """Test 1: Observer outputs IDLE voltage (0.0V) after reset"""
+        """Test 1: Observer outputs IDLE voltage (0mV) after reset"""
         # Check FSM is in IDLE
         state = get_state(self.dut)
         assert state == STATE_IDLE, ErrorMessages.WRONG_STATE.format("IDLE", hex(state))
@@ -66,13 +69,20 @@ class BpdFsmObserverBasicTests(TestBase):
         voltage = get_observer_voltage(self.dut)
         expected_v = calculate_expected_voltage(STATE_IDLE)
 
-        self.log(f"IDLE: {voltage:+.3f}V (expected {expected_v:+.3f}V)", VerbosityLevel.VERBOSE)
+        # Log in millivolts for clarity with hierarchical encoding
+        self.log(f"IDLE: {voltage*1000:+.1f}mV (expected {expected_v*1000:+.1f}mV)",
+                VerbosityLevel.VERBOSE)
 
-        assert abs(voltage - expected_v) < 0.1, \
+        # Tolerance adjusted for millivolt scale (was 0.1V, now 10mV)
+        assert abs(voltage - expected_v) < 0.01, \
             ErrorMessages.VOLTAGE_MISMATCH.format(expected_v, voltage)
 
     async def test_idle_to_armed(self):
-        """Test 2: Observer tracks IDLE → ARMED transition (0.0V → 0.625V)"""
+        """Test 2: Observer tracks IDLE → ARMED transition (0mV → 30mV)"""
+        # Note: Updated for forge_hierarchical_encoder (200 units/state)
+        # Old voltage spreading: 0.0V → 0.625V
+        # New hierarchical: 0mV → 30mV
+
         # Capture IDLE voltage
         voltage_idle = get_observer_voltage(self.dut)
         expected_idle = calculate_expected_voltage(STATE_IDLE)
@@ -93,12 +103,14 @@ class BpdFsmObserverBasicTests(TestBase):
         voltage_armed = get_observer_voltage(self.dut)
         expected_armed = calculate_expected_voltage(STATE_ARMED)
 
-        self.log(f"ARMED: {voltage_armed:+.3f}V (expected {expected_armed:+.3f}V)",
+        self.log(f"ARMED: {voltage_armed*1000:+.1f}mV (expected {expected_armed*1000:+.1f}mV)",
                 VerbosityLevel.VERBOSE)
 
         assert voltage_armed > voltage_idle, \
             ErrorMessages.VOLTAGE_NOT_INCREASING.format("ARMED", "IDLE")
-        assert abs(voltage_armed - expected_armed) < 0.1, \
+
+        # Tolerance adjusted for smaller voltage steps (30mV instead of 625mV)
+        assert abs(voltage_armed - expected_armed) < 0.01, \
             ErrorMessages.VOLTAGE_MISMATCH.format(expected_armed, voltage_armed)
 
     async def test_state_progression(self):
@@ -160,8 +172,9 @@ class BpdFsmObserverBasicTests(TestBase):
             assert voltages[i] > voltages[i-1], \
                 ErrorMessages.VOLTAGE_NOT_INCREASING.format(states_seen[i], states_seen[i-1])
 
-        self.log(f"Stairstep: IDLE→ARMED→FIRING→COOLDOWN voltage progression OK",
-                VerbosityLevel.NORMAL)
+        # Log the actual voltages for debugging
+        voltage_str = "→".join([f"{v*1000:.1f}mV" for v in voltages])
+        self.log(f"Stairstep OK: {voltage_str}", VerbosityLevel.NORMAL)
 
 
 @cocotb.test()
