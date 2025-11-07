@@ -35,6 +35,33 @@ output filtering + progressive test levels (P1/P2/P3/P4).
 - CocoTB tests
 - Inline documentation
 
+### AI Agent Toolkit
+
+**forge-vhdl includes specialized agents for autonomous VHDL development:**
+
+**Component Generator** (`.claude/forge-vhdl-component-generator.md`)
+- **Purpose:** VHDL-2008 code generation with GHDL simulation awareness
+- **Modes:** Pure VHDL, FORGE-aware, component usage, CocoTB tests
+- **Scope:** Submodule-local (no moku-models/probe dependencies)
+- **Use when:** Generating new VHDL utilities, packages, or test wrappers
+
+**CocoTB Test Designer** (`.claude/agents/cocotb-progressive-test-designer/`)
+- **Purpose:** Design P1/P2/P3 test architectures
+- **Outputs:** Test strategy, expected values, test wrappers, constants files
+- **Use when:** Planning tests for new VHDL components
+- **Handoff to:** CocoTB Test Runner for implementation
+
+**CocoTB Test Runner** (`.claude/agents/cocotb-progressive-test-runner/`)
+- **Purpose:** Implement and execute CocoTB tests
+- **Inputs:** Test designs from Designer agent
+- **Outputs:** Working test suites, GHDL compilation fixes
+- **Use when:** Implementing test code and debugging failures
+
+**Agent Workflow:**
+1. Component Generator → Create VHDL component
+2. Test Designer → Plan test architecture
+3. Test Runner → Implement and execute tests
+
 ---
 
 ## CocoTB Progressive Testing Standard
