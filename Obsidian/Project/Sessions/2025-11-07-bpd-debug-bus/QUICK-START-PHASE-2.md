@@ -3,6 +3,30 @@ created: 2025-11-07 10:52
 for: Quick resume after break
 ---
 
+ ● Where should the platform testing framework live within the repository?
+   → forge-vhdl extension
+ ● What testing priority should we focus on for Phase 1 MVP?
+   → BPD FSM validation
+ ● Should we create a specialized 'platform-testing' agent or reuse existing infrastructure?
+   → I think we should include a phase in the PLAN to review the best approach (however your context window right now is
+   probably perfect prepared for this, so now might be good)
+
+   Also, althouh these are not __strictly__ necessary for the platform-testing, the following YML files describe,
+   authoritatively, the Moku_Config setup that we will ultimately be aiming for
+
+   see @bpd-deployment-setup1-dummy-dut.yaml and @bpd-deployment-setup2-real-dut.yaml
+ ● Which advanced features should be included in the phased plan?
+   → Multi-channel capture, Routing simulation, Trigger modes, The 'routing simulation' will be sufficient if it gracefully
+   handles the 2-slot setup showin in @bpd-deployment-setup1-dummy-dut.yaml
+
+   One last thing: The platform simulator should include __explicit__ primitives for setting the MCC CR's **over the network**
+  
+   this primitive will introduce real world amounts of delay (on the order of 200ms) and is used to draw a clear and well
+   defined boundary between the 'outside world' (that is will ultimately be driven by a python script inputting values over the
+   networked CRs)
+
+   does that all make sense
+   
 # 🚀 QUICK START - Phase 2: bpd-debug.py
 
 ## Copy & Paste to New Context:
