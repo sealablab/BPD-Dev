@@ -72,12 +72,41 @@ ls -t Obsidian/Project/Sessions/*/next-session-plan.md | head -1
 
 If found, read and incorporate into current session plan.
 
-### 8. Report session creation
+### 8. Commit session docs to main (CRITICAL!)
+
+**IMPORTANT:** Always commit session docs to main, even if working on a session branch.
+This ensures docs are accessible regardless of branch state.
+
+```bash
+# If on session branch, stash or commit any work-in-progress
+git add Obsidian/Project/Sessions/YYYY-MM-DD-description/
+
+# Commit to current branch first
+git commit -m "docs: Create session YYYY-MM-DD-description
+
+Session goal: [brief goal]
+Branch: sessions/YYYY-MM-DD-description (or current)
+
+🤖 Generated with [Claude Code](https://claude.com/claude-code)
+
+Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# If on session branch, also commit to main
+if [ "$(git branch --show-current)" != "main" ]; then
+    current_branch=$(git branch --show-current)
+    git checkout main
+    git cherry-pick HEAD  # Or merge if preferred
+    git checkout "$current_branch"
+fi
+```
+
+### 9. Report session creation
 ```
 ✅ Session YYYY-MM-DD-description created
 
 📂 Directory: Obsidian/Project/Sessions/YYYY-MM-DD-description/
 🌿 Branch: sessions/YYYY-MM-DD-description (or current branch name)
+📝 Committed to: main + session branch ✓
 🎯 Goal: [user's goal]
 📝 Active handoffs: N linked
 
@@ -92,7 +121,8 @@ Ready to start!
 - **Session ID format:** Always `YYYY-MM-DD-description` (date + slugified goal)
 - **Git branch naming:** `sessions/YYYY-MM-DD-description` (if creating branch)
 - **Handoff symlinks:** Use relative paths `../../../Handoffs/...`
-- **Don't commit yet** - User will commit when ready
+- **ALWAYS commit to main:** Session docs must be accessible from main branch
+- **Dual-commit strategy:** Commit to session branch, then cherry-pick/merge to main
 
 ## Files Created
 

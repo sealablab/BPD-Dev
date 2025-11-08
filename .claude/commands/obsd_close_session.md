@@ -147,9 +147,14 @@ Looks good?
 ```
 
 ### 7. Commit session archive
+
+**IMPORTANT:** Always commit to main, even if on session branch (ensures docs accessible from main).
+
 ```bash
 cd Obsidian/Project/Sessions/YYYY-MM-DD-description/
 git add .
+
+# Commit to current branch
 git commit -m "docs: Session archive for YYYY-MM-DD-description
 
 - Total commits: N
@@ -159,6 +164,15 @@ git commit -m "docs: Session archive for YYYY-MM-DD-description
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 
 Co-Authored-By: Claude <noreply@anthropic.com>"
+
+# If on session branch, also commit to main
+current_branch=$(git branch --show-current)
+if [ "$current_branch" != "main" ]; then
+    git checkout main
+    git cherry-pick HEAD
+    git checkout "$current_branch"
+    echo "✓ Session archive committed to both $current_branch and main"
+fi
 ```
 
 ### 8. Handle session git branch (if exists)
