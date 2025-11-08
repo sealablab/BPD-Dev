@@ -58,6 +58,9 @@ class OscilloscopeSimulator:
         for channel in self.channels:
             self.data[channel] = []
 
+        # External signal routing (for inter-slot connections)
+        self.external_channels = {}  # channel_name → signal_handle
+
         # Statistics
         self.total_samples = 0
         self.capture_active = False
@@ -124,16 +127,40 @@ class OscilloscopeSimulator:
 
         self.capture_active = False
 
+    def add_external_channel(self, channel_name: str, signal_handle: SimHandleBase) -> None:
+        """
+        Add external signal source for inter-slot routing.
+
+        Args:
+            channel_name: Channel name (e.g., 'InputA' for Slot1InA routing)
+            signal_handle: CocoTB signal handle from source DUT
+        """
+        self.external_channels[channel_name] = signal_handle
+        # Add to data buffer if not already present
+        if channel_name not in self.data:
+            self.data[channel_name] = []
+        # Update channels list if not present
+        if channel_name not in self.channels:
+            self.channels.append(channel_name)
+        cocotb.log.info(f"OscilloscopeSimulator: Added external channel '{channel_name}'")
+
     def _get_signal(self, channel_name: str) -> Optional[SimHandleBase]:
         """
         Get DUT signal handle by name.
 
+        Checks external channels first (for routing), then falls back to DUT.
+
         Args:
-            channel_name: Signal name (e.g., 'OutputC', 'count_out')
+            channel_name: Signal name (e.g., 'OutputC', 'count_out', 'InputA')
 
         Returns:
             Signal handle or None if not found
         """
+        # Check external channels first (inter-slot routing)
+        if channel_name in self.external_channels:
+            return self.external_channels[channel_name]
+
+        # Fall back to DUT signals
         try:
             return getattr(self.dut, channel_name)
         except AttributeError:

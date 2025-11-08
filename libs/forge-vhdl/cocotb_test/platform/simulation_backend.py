@@ -77,12 +77,86 @@ class SimulationBackend(Backend):
             cocotb.log.warning(f"Slot {slot_num}: No simulator for {instrument_type}")
 
     def _setup_routing(self) -> None:
-        """Setup routing matrix from MokuConfig."""
+        """
+        Setup routing matrix from MokuConfig.
+
+        Configures signal routing between slots and physical outputs.
+        For oscilloscope instruments, updates channel mappings to capture
+        routed signals.
+        """
         for connection in self.config.routing:
             src = connection.source
             dst = connection.destination
             self.routing_matrix[f"{src}->{dst}"] = connection
             cocotb.log.info(f"Routing: {src} -> {dst}")
+
+            # Apply routing to destination instrument
+            self._apply_routing_connection(src, dst)
+
+    def _apply_routing_connection(self, src: str, dst: str) -> None:
+        """
+        Apply routing connection between source and destination.
+
+        Handles different routing patterns:
+        - SlotNOutX → SlotMInY: Inter-slot signal routing
+        - SlotNOutX → OUTY: Slot output to physical port
+        - INX → SlotNInY: Physical input to slot input
+
+        Args:
+            src: Source identifier (e.g., 'Slot2OutD', 'IN1')
+            dst: Destination identifier (e.g., 'Slot1InA', 'OUT1')
+        """
+        # Parse source and destination
+        src_slot, src_port = self._parse_signal_name(src)
+        dst_slot, dst_port = self._parse_signal_name(dst)
+
+        # Inter-slot routing (e.g., Slot2OutD → Slot1InA)
+        if src_slot is not None and dst_slot is not None:
+            src_simulator = self.simulators.get(src_slot)
+            dst_simulator = self.simulators.get(dst_slot)
+
+            if src_simulator and dst_simulator:
+                # Get source signal from DUT
+                if hasattr(self.dut, src_port):
+                    source_signal = getattr(self.dut, src_port)
+
+                    # Configure destination simulator to use this signal
+                    if hasattr(dst_simulator, 'add_external_channel'):
+                        dst_simulator.add_external_channel(dst_port, source_signal)
+                        cocotb.log.info(
+                            f"  Wired: Slot{src_slot}.{src_port} → "
+                            f"Slot{dst_slot}.{dst_port}"
+                        )
+                    else:
+                        cocotb.log.warning(
+                            f"  Destination Slot{dst_slot} does not support "
+                            f"external channels"
+                        )
+                else:
+                    cocotb.log.warning(f"  Source signal {src_port} not found in DUT")
+
+    def _parse_signal_name(self, signal: str) -> tuple:
+        """
+        Parse signal name to extract slot number and port name.
+
+        Args:
+            signal: Signal identifier (e.g., 'Slot2OutD', 'IN1', 'OUT2')
+
+        Returns:
+            Tuple of (slot_number or None, port_name)
+        """
+        if signal.startswith('Slot'):
+            # Extract slot number (e.g., 'Slot2OutD' → (2, 'OutputD'))
+            import re
+            match = re.match(r'Slot(\d+)(Out|In)([A-D])', signal)
+            if match:
+                slot = int(match.group(1))
+                direction = match.group(2)
+                channel = match.group(3)
+                port_name = f"Output{channel}" if direction == "Out" else f"Input{channel}"
+                return (slot, port_name)
+        # Physical port (IN1, OUT1, etc.)
+        return (None, signal)
 
     async def _apply_initial_control_registers(self) -> None:
         """Apply initial control registers to CloudCompile instruments."""
