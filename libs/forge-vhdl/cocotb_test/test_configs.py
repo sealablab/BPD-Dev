@@ -147,6 +147,18 @@ TESTS_CONFIG = {
         category="platform",
     ),
 
+    "platform_routing_integration": TestConfig(
+        name="platform_routing_integration",
+        sources=[
+            VHDL_PKG / "forge_common_pkg.vhd",                        # FORGE control scheme
+            VHDL_DEBUG / "forge_hierarchical_encoder.vhd",            # Hierarchical encoder
+            TESTS / "test_duts" / "forge_counter_with_encoder.vhd",  # Full 3-layer DUT
+        ],
+        toplevel="forge_counter_with_encoder",
+        test_module="test_platform_routing_integration",
+        category="platform",
+    ),
+
     # Note: Additional components that can have tests added:
     # - forge_voltage_threshold_trigger_core (utilities)
     # - fsm_observer (debugging)

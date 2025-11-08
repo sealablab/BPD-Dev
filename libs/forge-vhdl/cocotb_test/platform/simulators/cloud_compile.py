@@ -63,7 +63,7 @@ class CloudCompileSimulator:
 
             # Apply to DUT if port exists
             if hasattr(self.dut, reg_name):
-                setattr(self.dut, reg_name, value)
+                getattr(self.dut, reg_name).value = value
                 self.applied_crs[reg_num] = value
 
                 # Track FORGE control bits from CR0
@@ -88,7 +88,7 @@ class CloudCompileSimulator:
 
         reg_name = f'Control{register}'
         if hasattr(self.dut, reg_name):
-            setattr(self.dut, reg_name, value)
+            getattr(self.dut, reg_name).value = value
             self.applied_crs[register] = value
             self.control_registers[register] = value
 

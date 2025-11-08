@@ -9,6 +9,8 @@ import asyncio
 from typing import Dict, Optional
 from dataclasses import dataclass, field
 from datetime import datetime
+import cocotb
+from cocotb.triggers import Timer
 
 
 @dataclass
@@ -124,9 +126,11 @@ class NetworkCRInterface:
         self.network_busy = True
         self.total_network_ops += 1
 
-        # Apply network delay
+        # Apply network delay (use CocoTB Timer instead of asyncio.sleep)
         delay = delay_ms if delay_ms is not None else self.default_delay_ms
-        await asyncio.sleep(delay / 1000.0)  # Convert ms to seconds
+        if delay > 0:
+            delay_ns = int(delay * 1e6)  # Convert ms to ns
+            await Timer(delay_ns, units='ns')
 
         # Atomic register update
         self.slots[slot].set_register(register, value)
