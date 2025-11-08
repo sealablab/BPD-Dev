@@ -58,17 +58,34 @@ libs/forge-vhdl/cocotb_test/platform/
 - **Network delays**: Successfully implemented 200ms realistic delays
 - **Commit history**: 10 commits with ~2,000 lines added (infrastructure + counter PoC)
 
-## Phase 2: BPD Deployment Validation (Week 2)
+## Phase 2: BPD Deployment Validation (Week 2) - IN PROGRESS
 
 ### Goals
-- Load and test bpd-deployment-setup1-dummy-dut.yaml
-- Load and test bpd-deployment-setup2-real-dut.yaml
-- Validate 2-slot routing (Slot2OutD → Slot1InA for debug bus)
+- ~~Load and test bpd-deployment-setup1-dummy-dut.yaml~~ ✅ DONE (5/5 P1 tests)
+- ~~Load and test bpd-deployment-setup2-real-dut.yaml~~ ✅ DONE (5/5 P1 tests)
+- Validate 2-slot routing (Slot2OutD → Slot1InA for debug bus) 🚧 IN PROGRESS
 - Test network CR updates with BPD registers
+- **NEW:** Oscilloscope signal capture with hierarchical voltage encoding
+
+### Completed
+- [x] test_platform_bpd_deployment.py (5/5 P1 tests passing)
+- [x] forge_counter_with_encoder.vhd - Full FORGE 3-layer test DUT
+  - Layer 3: forge_state_counter_main (6-bit auto-increment counter)
+  - Layer 2: forge_state_counter_shim (hierarchical encoder + register mapping)
+  - Layer 1: forge_counter_with_encoder (FORGE control + MCC interface)
+  - Validates complete FORGE contract per Handoff 6
+  - Tests hierarchical voltage encoding (state × 200 + status offset)
+  - Overflow flag → fault detection (negative voltage)
+
+### In Progress
+- [ ] test_platform_oscilloscope_capture.py 🚧 NEXT
+- [ ] Wire signal routing in coordinator (Slot2OutD → Slot1InA) 🚧
+- [ ] Validate oscilloscope captures and decode hierarchical encoding 🚧
 
 ### Deliverables
-- [ ] test_platform_bpd_deployment.py
-- [ ] Routing matrix validation
+- [x] test_platform_bpd_deployment.py ✅ DONE
+- [ ] test_platform_oscilloscope_capture.py 🚧 IN PROGRESS
+- [ ] Routing matrix validation (active signal wiring)
 - [ ] CR update sequence tests
 - [ ] Debug bus capture validation
 
